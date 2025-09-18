@@ -1,12 +1,64 @@
 <!DOCTYPE html>
-<html>
-<head>
-<title>Page Title</title>
-</head>
-<body>
+    <html>
+        <head>
 
-<h1>This is a Heading</h1>
-<p>This is a paragraph.</p>
+            <style>
 
-</body>
-</html>
+                .sidebar {
+                    height: 100%;
+                    width: 160px;
+                    position: fixed;
+                    z-index: 1;
+                    top: 0;
+                    left: 0;
+                    background-color: #3E679E;
+                    overflow-x: hidden;
+                    padding-top: 20px;
+                }
+
+                .sidebar button {
+                    display: block;
+                    background-color: white;
+                    color: #3E679E;
+                    padding: 15px 32px;
+                    font-size: 24px;
+                    border-top: 1px solid #3E679E;
+                    border-bottom: 1px solid #3E679E;
+
+                }
+
+                .sidebar button:hover {
+                    background-color: #3E679E;
+                    color: white;
+                }
+
+                .header {
+                    padding-left: 165px;
+                }
+
+                .main {
+                    margin-left: 160px;
+                    padding: 0px 5px;
+                }
+
+
+            </style>
+
+            <title>Student Information System</title>
+
+        </head>
+
+    <body>
+
+        <div class="sidebar">
+            <button class="students" onclick="return false;">Students</a>
+            <button class="programs" onclick="return false;">Programs</a>
+            <button class="colleges" onclick="return false;">Colleges</a>
+        </div>
+
+        <div class="main">
+            <h1> Student Information System</h1>
+        </div>
+
+    </body>
+    </html>
