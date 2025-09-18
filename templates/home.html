@@ -1,64 +1,31 @@
 <!DOCTYPE html>
-    <html>
-        <head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SSIS Website</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
 
-            <style>
+<body class="h-screen flex bg-[#FAF7F5]">
+  <!-- Sidebar -->
+  <aside class="w-40 bg-[#524545] text-white flex flex-col p-4 space-y-4 rounded-r-lg">
+    <button class="hover:bg-[#FAF7F5] hover:text-[#524545] p-2 rounded">Colleges</button>
+    <button class="hover:bg-[#FAF7F5] hover:text-[#524545] p-2 rounded">Students</button>
+    <button class="hover:bg-[#FAF7F5] hover:text-[#524545] p-2 rounded">Programs</button>
+  </aside>
 
-                .sidebar {
-                    height: 100%;
-                    width: 160px;
-                    position: fixed;
-                    z-index: 1;
-                    top: 0;
-                    left: 0;
-                    background-color: #3E679E;
-                    overflow-x: hidden;
-                    padding-top: 20px;
-                }
+  <!-- Right Section (Header + Content) -->
+  <div class="flex-1 flex flex-col">
+    <!-- Header -->
+    <header class="bg-[#69D9E2] p-4 text-left font-bold text-xl text-[#524545] rounded-b-lg">
+      Student Information System
+    </header>
 
-                .sidebar button {
-                    display: block;
-                    background-color: white;
-                    color: #3E679E;
-                    padding: 15px 32px;
-                    font-size: 24px;
-                    border-top: 1px solid #3E679E;
-                    border-bottom: 1px solid #3E679E;
-
-                }
-
-                .sidebar button:hover {
-                    background-color: #3E679E;
-                    color: white;
-                }
-
-                .header {
-                    padding-left: 165px;
-                }
-
-                .main {
-                    margin-left: 160px;
-                    padding: 0px 5px;
-                }
-
-
-            </style>
-
-            <title>Student Information System</title>
-
-        </head>
-
-    <body>
-
-        <div class="sidebar">
-            <button class="students" onclick="return false;">Students</a>
-            <button class="programs" onclick="return false;">Programs</a>
-            <button class="colleges" onclick="return false;">Colleges</a>
-        </div>
-
-        <div class="main">
-            <h1> Student Information System</h1>
-        </div>
-
-    </body>
-    </html>
+    <!-- Content -->
+    <main class="flex-1 bg-[#FAF7F5] p-6">
+      <h2 class="text-[#524545] text-2xl font-bold mb-4">Content</h2>
+    </main>
+  </div>
+</body>
+</html>
