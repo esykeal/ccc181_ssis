@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS colleges CASCADE;
+
+CREATE TABLE IF NOT EXISTS colleges (
+    id SERIAL PRIMARY KEY,
+    college_code VARCHAR(10) UNIQUE NOT NULL,
+    college_name VARCHAR(100) NOT NULL,
+);

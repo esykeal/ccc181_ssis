@@ -1,0 +1,8 @@
+DROP TABLE IF EXISTS programs CASCADE;
+
+CREATE TABLE IF NOT EXISTS programs (
+    id SERIAL PRIMARY KEY,
+    program_code VARCHAR(10) UNIQUE NOT NULL,
+    program_name VARCHAR(100) NOT NULL,
+    college_id INTEGER NOT NULL REFERENCES colleges(id) ON DELETE CASCADE
+);
