@@ -1,25 +1,13 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Colleges } from "./pages/colleges/Colleges";
-import { Programs } from "./pages/programs/Programs";
-import { Students } from "./pages/students/Students";
-import { MasterLayout } from "./layouts/MasterLayout";
-import { Home } from "./pages/home/Home"; // Make sure to import Home
+import { Outlet } from "react-router-dom";
+import Sidebar from "@/modules/layouts/Sidebar";
 
-function App() {
+export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Navigate to="/home" replace />} />{" "}
-        {/* Redirect */}
-        <Route path="/home" element={<MasterLayout />}>
-          <Route index element={<Home />} />
-          <Route path="colleges" element={<Colleges />} />
-          <Route path="programs" element={<Programs />} />
-          <Route path="students" element={<Students />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <div className="flex min-h-screen bg-zinc-50">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto">
+        <Outlet />
+      </main>
+    </div>
   );
 }
-
-export default App;

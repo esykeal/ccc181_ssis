@@ -1,48 +1,3 @@
-@import "tailwindcss";
-
-@plugin "daisyui";
-
-@plugin "daisyui/theme" {
-  name: "hollowknight";
-  default: false;
-  prefersdark: false;
-  color-scheme: "dark";
-  --color-base-100: oklch(12% 0.042 264.695);
-  --color-base-200: oklch(20% 0.042 265.755);
-  --color-base-300: oklch(27% 0.041 260.031);
-  --color-base-content: oklch(96% 0.007 247.896);
-  --color-primary: oklch(85% 0.199 91.936); /* Yellow */
-  --color-primary-content: oklch(28% 0.066 53.813);
-  --color-secondary: oklch(71% 0.203 305.504);
-  --color-secondary-content: oklch(29% 0.149 302.717);
-  --color-accent: oklch(76% 0.177 163.223);
-  --color-accent-content: oklch(26% 0.051 172.552);
-  --color-neutral: oklch(12% 0.042 264.695);
-  --color-neutral-content: oklch(98% 0.003 247.858);
-  --color-info: oklch(54% 0.245 262.881);
-  --color-info-content: oklch(97% 0.014 254.604);
-  --color-success: oklch(62% 0.194 149.214);
-  --color-success-content: oklch(98% 0.018 155.826);
-  --color-warning: oklch(66% 0.179 58.318);
-  --color-warning-content: oklch(98% 0.022 95.277);
-  --color-error: oklch(59% 0.249 0.584);
-  --color-error-content: oklch(97% 0.014 343.198);
-  --radius-selector: 2rem;
-  --radius-field: 0.25rem;
-  --radius-box: 0.25rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 0;
-  --noise: 0;
-}
-
-/* 3. Apply the theme */
-html {
-  data-theme: hollowknight;
-}
-
-/* Rest of your App.css */
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -50,4 +5,38 @@ html {
   text-align: center;
 }
 
-/* ... rest of your CSS ... */
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
