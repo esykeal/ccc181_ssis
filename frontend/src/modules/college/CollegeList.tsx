@@ -4,6 +4,7 @@ import type { College } from "@/types";
 import { Button } from "@/components/ui/button";
 import AddCollegeDialog from "./CollegeAddDialog";
 import DeleteConfirmationDialog from "./CollegeDeleteConfirmationDialog";
+import EditCollegeDialog from "./CollegeEditDialog";
 
 export default function CollegeList() {
   const [colleges, setColleges] = useState<College[]>([]);
@@ -13,6 +14,8 @@ export default function CollegeList() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [collegeToDelete, setCollegeToDelete] = useState<string | null>(null);
 
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [collegeToEdit, setCollegeToEdit] = useState<College | null>(null);
   const fetchColleges = () => {
     setLoading(true);
     api
@@ -52,6 +55,11 @@ export default function CollegeList() {
     }
   };
 
+  const handleEdit = (college: College) => {
+    setCollegeToEdit(college);
+    setEditDialogOpen(true);
+  };
+
   if (loading && colleges.length === 0)
     return <p className="text-center p-4">Loading...</p>;
 
@@ -85,7 +93,11 @@ export default function CollegeList() {
                 <td className="p-4 font-medium">{college.college_code}</td>
                 <td className="p-4">{college.college_name}</td>
                 <td className="p-4 text-right space-x-2">
-                  <Button variant="outline" size="sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(college)}
+                  >
                     Edit
                   </Button>
 
@@ -108,7 +120,14 @@ export default function CollegeList() {
         onOpenChange={setDeleteDialogOpen}
         onConfirm={confirmDelete}
         title={`Delete ${collegeToDelete}?`}
-        description="Are you sure you want to delete this college? This action cannot be undone."
+        description="Are you sure? This action cannot be undone."
+      />
+
+      <EditCollegeDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        college={collegeToEdit}
+        onCollegeUpdated={fetchColleges}
       />
     </div>
   );
