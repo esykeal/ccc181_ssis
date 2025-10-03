@@ -1,24 +1,19 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "./App";
-import Dashboard from "@/modules/Dashboard";
+import Dashboard from "./modules/Dashboard";
 import CollegeList from "@/modules/college/CollegeList";
+import ProgramList from "@/modules/program/ProgramList";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
     children: [
-      {
-        path: "/",
-        element: <Dashboard />,
-      },
-      {
-        path: "colleges",
-        element: <CollegeList />,
-      },
+      { path: "/", element: <Dashboard /> },
+      { path: "colleges", element: <CollegeList /> },
       {
         path: "programs",
-        element: <div className="p-8">Program Component Coming Soon</div>,
+        element: <ProgramList />,
       },
       {
         path: "students",
