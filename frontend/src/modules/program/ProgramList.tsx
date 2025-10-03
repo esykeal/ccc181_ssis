@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import type { Program } from "@/types";
 import { Button } from "@/components/ui/button";
+import AddProgramDialog from "./AddProgramDialog";
 import DeleteConfirmationDialog from "./ProgramDeleteConfirmationDialog";
 
 export default function ProgramList() {
@@ -64,10 +65,7 @@ export default function ProgramList() {
           <h1 className="text-2xl font-bold">Programs</h1>
           <p className="text-zinc-500 text-sm">Manage academic courses</p>
         </div>
-        {/* Placeholder Button until we build the Dialog */}
-        <Button onClick={() => alert("Add Dialog coming next!")}>
-          + Add Program
-        </Button>
+        <AddProgramDialog onProgramAdded={fetchPrograms} />
       </div>
 
       <div className="border rounded-lg overflow-hidden shadow-sm bg-white">
