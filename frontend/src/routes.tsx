@@ -3,6 +3,7 @@ import App from "./App";
 import Dashboard from "./modules/Dashboard";
 import CollegeList from "@/modules/college/CollegeList";
 import ProgramList from "@/modules/program/ProgramList";
+import StudentList from "./modules/student/StudentList";
 
 export const router = createBrowserRouter([
   {
@@ -17,7 +18,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "students",
-        element: <div className="p-8">Students Component Coming Soon</div>,
+        element: <StudentList />,
       },
     ],
   },

@@ -4,6 +4,7 @@ import type { Student } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import DeleteConfirmationDialog from "./StudentDeleteConfirmationDialog";
+import AddStudentDialog from "./AddStudentDialog";
 
 export default function StudentList() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -63,9 +64,7 @@ export default function StudentList() {
           <h1 className="text-2xl font-bold">Students</h1>
           <p className="text-zinc-500 text-sm">Manage student records</p>
         </div>
-        <Button onClick={() => alert("Add Student coming next!")}>
-          + Add Student
-        </Button>
+        <AddStudentDialog onStudentAdded={fetchStudents} />
       </div>
 
       <div className="border rounded-lg overflow-hidden shadow-sm bg-white">
