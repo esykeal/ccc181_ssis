@@ -157,3 +157,17 @@ class ProgramModel:
         finally:
             cur.close()
             conn.close()
+
+    @classmethod
+    def get_count(cls):
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute("SELECT COUNT(*) FROM program_table")
+            count = cur.fetchone()[0]
+            return count
+        except Exception as e:
+            return 0
+        finally:
+            cur.close()
+            conn.close()    
