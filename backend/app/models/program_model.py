@@ -54,6 +54,28 @@ class ProgramModel:
                 "college_code": row[3]
             }
         return None
+    
+    @classmethod
+    def get_by_name(cls, program_name):
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id, program_code, program_name, college_code 
+            FROM program_table 
+            WHERE program_name = %s
+        """, (program_name,))
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if row:
+            return {
+                "id": row[0],
+                "program_code": row[1],
+                "program_name": row[2],
+                "college_code": row[3]
+            }
+        return None
 
     # --- CREATE ---
     @classmethod

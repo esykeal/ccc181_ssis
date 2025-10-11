@@ -56,18 +56,26 @@ def update_program(code):
     if not data:
         return jsonify({"error": "No data provided"}), 400
     
-    # Check if program exists first
     current_program = ProgramModel.get_by_code(code)
     if not current_program:
         return jsonify({"error": "Program not found"}), 404
 
-    # Use existing values if new ones aren't provided
     new_code = data.get('program_code', current_program['program_code'])
     new_name = data.get('program_name', current_program['program_name'])
     new_college = data.get('college_code', current_program['college_code'])
 
-    if 'college_code' in data and not CollegeModel.get_by_code(new_college):
-        return jsonify({"error": "New college code does not exist"}), 400
+    if new_code != current_program['program_code']:
+        if ProgramModel.get_by_code(new_code):
+            return jsonify({"error": f"Program code '{new_code}' already exists"}), 400
+
+    if new_name != current_program['program_name']:
+        if ProgramModel.get_by_name(new_name):
+            return jsonify({"error": f"Program name '{new_name}' already exists"}), 400
+
+    if new_college != current_program['college_code']:
+         from app.models.college_model import CollegeModel
+         if not CollegeModel.get_by_code(new_college):
+             return jsonify({"error": "New college code does not exist"}), 400
 
     try:
         updated_program = ProgramModel.update(code, new_code, new_name, new_college)
@@ -75,13 +83,7 @@ def update_program(code):
             return jsonify(updated_program)
         return jsonify({"error": "Update failed"}), 500
     except Exception as e:
-        error_msg = str(e)
-        if "duplicate key value" in error_msg:
-             return jsonify({"error": "New program code already exists"}), 409
-        if "foreign key constraint" in error_msg:
-            return jsonify({"error": "New college code does not exist"}), 400
-            
-        return jsonify({"error": error_msg}), 500
+        return jsonify({"error": str(e)}), 500
 
 # --- DELETE ---
 @program_bp.route('/<string:code>', methods=['DELETE'])
