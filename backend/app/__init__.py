@@ -9,7 +9,6 @@ def create_app():
 
     CORS(app)
 
-    # Register your Blueprints here
     app.register_blueprint(college_bp)
     app.register_blueprint(program_bp)
     app.register_blueprint(student_bp)

@@ -48,6 +48,23 @@ class CollegeModel:
                 "college_name": row[2]
             }
         return None
+    
+    @classmethod
+    def get_by_name(cls, college_name):
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT id, college_code, college_name FROM college_table WHERE college_name = %s", (college_name,))
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if row:
+            return {
+                "id": row[0],
+                "college_code": row[1],
+                "college_name": row[2]
+            }
+        return None
 
     #Creates 
     @classmethod

@@ -42,7 +42,6 @@ def update_college(code):
     if not data:
         return jsonify({"error": "No data provided"}), 400
     
-    # Use existing values if new ones aren't provided
     current_college = CollegeModel.get_by_code(code)
     if not current_college:
         return jsonify({"error": "College not found"}), 404
@@ -50,14 +49,20 @@ def update_college(code):
     new_code = data.get('college_code', current_college['college_code'])
     new_name = data.get('college_name', current_college['college_name'])
 
+    if new_code != current_college['college_code']:
+        if CollegeModel.get_by_code(new_code):
+            return jsonify({"error": f"College code '{new_code}' already exists"}), 400
+
+    if new_name != current_college['college_name']:
+        if CollegeModel.get_by_name(new_name):
+            return jsonify({"error": f"College name '{new_name}' already exists"}), 400
+
     try:
         updated_college = CollegeModel.update(code, new_code, new_name)
         if updated_college:
             return jsonify(updated_college)
         return jsonify({"error": "Update failed"}), 500
     except Exception as e:
-        if "duplicate key value" in str(e):
-             return jsonify({"error": "New college code already exists"}), 409
         return jsonify({"error": str(e)}), 500
     
 # 5. DELETE: Remove a college
