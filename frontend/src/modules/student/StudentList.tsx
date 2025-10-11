@@ -2,23 +2,25 @@ import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import type { Student } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import AddStudentDialog from "./StudentAddDialog";
 import DeleteConfirmationDialog from "./StudentDeleteConfirmationDialog";
-import AddStudentDialog from "./AddStudentDialog";
+import EditStudentDialog from "./StudentEditDialog";
 
 export default function StudentList() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Delete State
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
+
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [studentToEdit, setStudentToEdit] = useState<Student | null>(null); // <-- 2. Track object
 
   const fetchStudents = () => {
     setLoading(true);
     api
-      .get("/student/") // Note: Backend route is /student/ (singular based on your controller)
+      .get("/student/")
       .then((response) => {
         setStudents(response.data);
         setLoading(false);
@@ -34,7 +36,6 @@ export default function StudentList() {
     fetchStudents();
   }, []);
 
-  // Delete Logic
   const initiateDelete = (id: string) => {
     setStudentToDelete(id);
     setDeleteDialogOpen(true);
@@ -53,9 +54,13 @@ export default function StudentList() {
     }
   };
 
+  const handleEdit = (student: Student) => {
+    setStudentToEdit(student);
+    setEditDialogOpen(true);
+  };
+
   if (loading && students.length === 0)
     return <p className="text-center p-4">Loading students...</p>;
-  if (error) return <p className="text-center text-red-500 p-4">{error}</p>;
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
@@ -82,50 +87,43 @@ export default function StudentList() {
             </tr>
           </thead>
           <tbody>
-            {students.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="p-8 text-center text-zinc-500">
-                  No students found.
+            {students.map((student) => (
+              <tr
+                key={student.id}
+                className="border-b last:border-0 hover:bg-zinc-50"
+              >
+                <td className="p-4 font-medium font-mono">
+                  {student.student_id}
+                </td>
+                <td className="p-4">
+                  {student.lastname}, {student.firstname}
+                </td>
+                <td className="p-4">
+                  <span className="font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded text-xs">
+                    {student.program_code}
+                  </span>
+                </td>
+                <td className="p-4">{student.year}</td>
+                <td className="p-4">{student.gender}</td>
+                <td className="p-4 text-right space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(student)}
+                  >
+                    Edit
+                  </Button>
+
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => initiateDelete(student.student_id)}
+                  >
+                    Delete
+                  </Button>
                 </td>
               </tr>
-            ) : (
-              students.map((student) => (
-                <tr
-                  key={student.id}
-                  className="border-b last:border-0 hover:bg-zinc-50"
-                >
-                  <td className="p-4 font-medium font-mono">
-                    {student.student_id}
-                  </td>
-                  <td className="p-4">
-                    {student.lastname}, {student.firstname}
-                  </td>
-                  <td className="p-4">
-                    <span className="font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded text-xs">
-                      {student.program_code}
-                    </span>
-                  </td>
-                  <td className="p-4">{student.year}</td>
-                  <td className="p-4">{student.gender}</td>
-                  <td className="p-4 text-right space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => alert("Edit coming soon!")}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => initiateDelete(student.student_id)}
-                    >
-                      Delete
-                    </Button>
-                  </td>
-                </tr>
-              ))
-            )}
+            ))}
           </tbody>
         </table>
       </div>
@@ -134,8 +132,15 @@ export default function StudentList() {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={confirmDelete}
-        title={`Delete ${studentToDelete}?`}
-        description="Are you sure you want to delete this student record? This cannot be undone."
+        title={`Delete Student ${studentToDelete}?`}
+        description="Are you sure? This cannot be undone."
+      />
+
+      <EditStudentDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        student={studentToEdit}
+        onStudentUpdated={fetchStudents}
       />
     </div>
   );
