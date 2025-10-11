@@ -40,10 +40,8 @@ def add_program():
         return jsonify(new_program), 201
     except Exception as e:
         error_msg = str(e)
-        # Handle duplicate program code
         if "duplicate key value" in error_msg:
              return jsonify({"error": "Program code already exists"}), 409
-        # Handle invalid college code (Foreign Key constraint)
         if "foreign key constraint" in error_msg:
             return jsonify({"error": "College code does not exist"}), 400
             
@@ -93,5 +91,11 @@ def delete_program(code):
         if success:
             return jsonify({"message": "Program deleted successfully"}), 200
         return jsonify({"error": "Program not found"}), 404
+        
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        error_msg = str(e)
+        if "update or delete on table" in error_msg and "violates foreign key constraint" in error_msg:
+             return jsonify({
+                 "error": "Cannot delete this program because it has enrolled students. Please delete the students first."
+             }), 400
+        return jsonify({"error": error_msg}), 500

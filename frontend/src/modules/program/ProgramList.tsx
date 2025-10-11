@@ -4,18 +4,25 @@ import type { Program } from "@/types";
 import { Button } from "@/components/ui/button";
 import AddProgramDialog from "./ProgramAddDialog";
 import DeleteConfirmationDialog from "./ProgramDeleteConfirmationDialog";
-import EditProgramDialog from "./ProgramEditDialog"; //
+import EditProgramDialog from "./ProgramEditDialog";
+import ErrorDialog from "@/modules/ErrorDialog";
 
 export default function ProgramList() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Delete State
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [programToDelete, setProgramToDelete] = useState<string | null>(null);
 
+  // Edit State
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [programToEdit, setProgramToEdit] = useState<Program | null>(null);
+
+  // 2. NEW: Error Dialog State
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const fetchPrograms = () => {
     setLoading(true);
@@ -41,6 +48,7 @@ export default function ProgramList() {
     setDeleteDialogOpen(true);
   };
 
+  // 3. Updated Delete Logic
   const confirmDelete = async () => {
     if (!programToDelete) return;
     try {
@@ -49,8 +57,14 @@ export default function ProgramList() {
       setProgramToDelete(null);
       fetchPrograms();
     } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to delete program");
       setDeleteDialogOpen(false);
+
+      // Get the nice message from Python
+      const msg = err.response?.data?.error || "Failed to delete program";
+
+      // Open the Error Dialog
+      setErrorMessage(msg);
+      setErrorDialogOpen(true);
     }
   };
 
@@ -105,7 +119,6 @@ export default function ProgramList() {
                   >
                     Edit
                   </Button>
-
                   <Button
                     variant="destructive"
                     size="sm"
@@ -133,6 +146,14 @@ export default function ProgramList() {
         onOpenChange={setEditDialogOpen}
         program={programToEdit}
         onProgramUpdated={fetchPrograms}
+      />
+
+      {/* 4. Render the Error Dialog */}
+      <ErrorDialog
+        open={errorDialogOpen}
+        onOpenChange={setErrorDialogOpen}
+        title="Unable to Delete"
+        description={errorMessage}
       />
     </div>
   );

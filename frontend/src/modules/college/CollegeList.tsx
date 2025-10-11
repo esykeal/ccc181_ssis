@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import AddCollegeDialog from "./CollegeAddDialog";
 import DeleteConfirmationDialog from "./CollegeDeleteConfirmationDialog";
 import EditCollegeDialog from "./CollegeEditDialog";
+import ErrorDialog from "../ErrorDialog";
 
 export default function CollegeList() {
   const [colleges, setColleges] = useState<College[]>([]);
@@ -16,6 +17,10 @@ export default function CollegeList() {
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [collegeToEdit, setCollegeToEdit] = useState<College | null>(null);
+
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
   const fetchColleges = () => {
     setLoading(true);
     api
@@ -49,9 +54,12 @@ export default function CollegeList() {
       setCollegeToDelete(null);
       fetchColleges();
     } catch (err: any) {
-      console.error(err);
-      alert(err.response?.data?.error || "Failed to delete college");
       setDeleteDialogOpen(false);
+
+      const msg = err.response?.data?.error || "Failed to delete college";
+
+      setErrorMessage(msg);
+      setErrorDialogOpen(true);
     }
   };
 
@@ -128,6 +136,13 @@ export default function CollegeList() {
         onOpenChange={setEditDialogOpen}
         college={collegeToEdit}
         onCollegeUpdated={fetchColleges}
+      />
+
+      <ErrorDialog
+        open={errorDialogOpen}
+        onOpenChange={setErrorDialogOpen}
+        title="Unable to Delete"
+        description={errorMessage}
       />
     </div>
   );
