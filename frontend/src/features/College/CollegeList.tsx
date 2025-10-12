@@ -1,16 +1,21 @@
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
 import type { College } from "@/types";
 import { Button } from "@/components/ui/button";
 import AddCollegeDialog from "./CollegeAddDialog";
 import DeleteConfirmationDialog from "./CollegeDeleteConfirmationDialog";
 import EditCollegeDialog from "./CollegeEditDialog";
 import ErrorDialog from "../Components/ErrorDialog";
+import PaginationControls from "../Components/PaginationControls";
+import collegeApi from "@/api/collegeApi";
 
 export default function CollegeList() {
   const [colleges, setColleges] = useState<College[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit] = useState(10);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [collegeToDelete, setCollegeToDelete] = useState<string | null>(null);
@@ -21,24 +26,28 @@ export default function CollegeList() {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const fetchColleges = () => {
+  const fetchColleges = async () => {
     setLoading(true);
-    api
-      .get("/colleges/")
-      .then((response) => {
-        setColleges(response.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("API Error:", err);
-        setError("Failed to load colleges.");
-        setLoading(false);
-      });
+    setError("");
+
+    try {
+      const response = await collegeApi.fetchAll(page, limit);
+
+      setColleges(response.data || []);
+
+      const totalRecords = response.total || 0;
+      setTotalPages(Math.ceil(totalRecords / limit));
+    } catch (err) {
+      console.error("API Error:", err);
+      setError("Failed to load colleges.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchColleges();
-  }, []);
+  }, [page]);
 
   const initiateDelete = (code: string) => {
     setCollegeToDelete(code);
@@ -49,15 +58,14 @@ export default function CollegeList() {
     if (!collegeToDelete) return;
 
     try {
-      await api.delete(`/colleges/${collegeToDelete}`);
+      await collegeApi.delete(collegeToDelete);
+
       setDeleteDialogOpen(false);
       setCollegeToDelete(null);
       fetchColleges();
     } catch (err: any) {
       setDeleteDialogOpen(false);
-
       const msg = err.response?.data?.error || "Failed to delete college";
-
       setErrorMessage(msg);
       setErrorDialogOpen(true);
     }
@@ -77,6 +85,7 @@ export default function CollegeList() {
         <div>
           <h1 className="text-2xl font-bold">Colleges</h1>
           <p className="text-zinc-500 text-sm">Manage university departments</p>
+          {error && <p className="text-red-500 mt-2">{error}</p>}
         </div>
         <AddCollegeDialog onCollegeAdded={fetchColleges} />
       </div>
@@ -93,34 +102,49 @@ export default function CollegeList() {
             </tr>
           </thead>
           <tbody>
-            {colleges.map((college) => (
-              <tr
-                key={college.id}
-                className="border-b last:border-0 hover:bg-zinc-50"
-              >
-                <td className="p-4 font-medium">{college.college_code}</td>
-                <td className="p-4">{college.college_name}</td>
-                <td className="p-4 text-right space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(college)}
-                  >
-                    Edit
-                  </Button>
-
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => initiateDelete(college.college_code)}
-                  >
-                    Delete
-                  </Button>
+            {colleges.length === 0 && !loading ? (
+              <tr>
+                <td colSpan={3} className="p-4 text-center text-zinc-500">
+                  No colleges found.
                 </td>
               </tr>
-            ))}
+            ) : (
+              colleges.map((college) => (
+                <tr
+                  key={college.id}
+                  className="border-b last:border-0 hover:bg-zinc-50"
+                >
+                  <td className="p-4 font-medium">{college.college_code}</td>
+                  <td className="p-4">{college.college_name}</td>
+                  <td className="p-4 text-right space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(college)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => initiateDelete(college.college_code)}
+                    >
+                      Delete
+                    </Button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
+      </div>
+
+      <div className="flex justify-center mt-4 border">
+        <PaginationControls
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       </div>
 
       <DeleteConfirmationDialog

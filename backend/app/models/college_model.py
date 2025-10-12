@@ -1,4 +1,5 @@
 from app.db import get_db_connection
+from psycopg2.extras import DictCursor
 
 class CollegeModel:
     def __init__(self, id, college_code, college_name):
@@ -6,35 +7,33 @@ class CollegeModel:
         self.college_code = college_code
         self.college_name = college_name
 
-    #Lists all Colleges
+    # --- LIST (Read All) ---
     @classmethod
     def get_all(cls):
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=DictCursor)
         
         cur.execute("SELECT id, college_code, college_name FROM college_table")
-        rows = cur.fetchall() # Returns a list of tuples
+        rows = cur.fetchall() 
         
         cur.close()
         conn.close()
         
-        # Convert tuples to dictionary format for JSON response
         colleges = []
         for row in rows:
             colleges.append({
-                "id": row[0],
-                "college_code": row[1],
-                "college_name": row[2]
+                "id": row["id"], 
+                "college_code": row["college_code"], 
+                "college_name": row["college_name"]
             })
         return colleges
     
-    #Read(Get one by code)
+    # --- READ (Get one by code) ---
     @classmethod
     def get_by_code(cls, code):
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=DictCursor)
         
-        # Make sure 'college_table' matches your actual database table name!
         cur.execute("SELECT id, college_code, college_name FROM college_table WHERE college_code = %s", (code,))
         row = cur.fetchone()
         
@@ -43,16 +42,16 @@ class CollegeModel:
 
         if row:
             return {
-                "id": row[0],
-                "college_code": row[1],
-                "college_name": row[2]
+                "id": row["id"], 
+                "college_code": row["college_code"], 
+                "college_name": row["college_name"]
             }
         return None
     
     @classmethod
     def get_by_name(cls, college_name):
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=DictCursor)
         cur.execute("SELECT id, college_code, college_name FROM college_table WHERE college_name = %s", (college_name,))
         row = cur.fetchone()
         cur.close()
@@ -60,17 +59,17 @@ class CollegeModel:
 
         if row:
             return {
-                "id": row[0],
-                "college_code": row[1],
-                "college_name": row[2]
+                "id": row["id"], 
+                "college_code": row["college_code"], 
+                "college_name": row["college_name"]
             }
         return None
 
-    #Creates 
+    # --- CREATE ---
     @classmethod
     def add(cls, code, name):
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=DictCursor)
         
         try:
             cur.execute(
@@ -80,10 +79,11 @@ class CollegeModel:
             new_row = cur.fetchone()
             conn.commit()
             
+            # ✅ FIX 1: Use 'new_row' here
             return {
-                "id": new_row[0],
-                "college_code": new_row[1],
-                "college_name": new_row[2]
+                "id": new_row["id"], 
+                "college_code": new_row["college_code"], 
+                "college_name": new_row["college_name"]
             }
         except Exception as e:
             conn.rollback()
@@ -92,11 +92,11 @@ class CollegeModel:
             cur.close()
             conn.close()
 
-    #Updates
+    # --- UPDATE ---
     @classmethod
     def update(cls, original_code, new_code, new_name):
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=DictCursor)
         try:
             cur.execute(
                 """
@@ -111,10 +111,11 @@ class CollegeModel:
             conn.commit()
             
             if updated_row:
+                # ✅ FIX 1: Use 'updated_row' here
                 return {
-                    "id": updated_row[0],
-                    "college_code": updated_row[1],
-                    "college_name": updated_row[2]
+                    "id": updated_row["id"], 
+                    "college_code": updated_row["college_code"], 
+                    "college_name": updated_row["college_name"]
                 }
             return None
         except Exception as e:
@@ -128,12 +129,13 @@ class CollegeModel:
     @classmethod
     def delete(cls, code):
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=DictCursor)
         try:
+            # We don't need DictCursor here, but it's fine. The result is just one column (id)
             cur.execute("DELETE FROM college_table WHERE college_code = %s RETURNING id", (code,))
-            deleted_id = cur.fetchone()
+            deleted_row = cur.fetchone()
             conn.commit()
-            return True if deleted_id else False
+            return True if deleted_row else False
         except Exception as e:
             conn.rollback()
             raise e
@@ -144,13 +146,59 @@ class CollegeModel:
     @classmethod
     def get_count(cls):
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=DictCursor)
         try:
             cur.execute("SELECT COUNT(*) FROM college_table")
-            count = cur.fetchone()[0]
-            return count
+            count_row = cur.fetchone()
+            # ✅ FIX 2 (Safer approach): Access by column name 'count'
+            return count_row['count'] 
         except Exception as e:
             return 0
+        finally:
+            cur.close()
+            conn.close()
+
+    @classmethod
+    def by_pagination(cls, page: int, limit: int):
+        offset = (page - 1) * limit
+
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=DictCursor)
+
+        try:
+            # 1. Fetch paginated data
+            cur.execute(
+                """
+                SELECT id, college_code, college_name
+                FROM college_table
+                ORDER BY id
+                LIMIT %s OFFSET %s
+                """,
+                (limit, offset)
+            )
+            # ✅ FIX 2: Clean up corrupted line
+            rows = cur.fetchall()
+            
+            # 2. Fetch total count (using AS total for clean access)
+            cur.execute("SELECT COUNT(*) AS total_count FROM college_table")
+            total_row = cur.fetchone()
+            total = total_row['total_count']
+            
+            colleges = []
+            for row in rows:
+                colleges.append({
+                    "id": row["id"], 
+                    "college_code": row["college_code"], 
+                    "college_name": row["college_name"]
+                })
+                
+            return {
+                    "data": colleges,
+                    "page": page,
+                    "limit": limit,
+                    "total": total
+                }
+
         finally:
             cur.close()
             conn.close()
