@@ -7,9 +7,19 @@ interface FetchCollegesResponse {
 }
 
 const collegeApi = {
-  fetchAll: async (page: number, limit: number) => {
+  fetchAll: async (
+    page: number,
+    limit: number,
+    sortBy: string = "college_code",
+    sortOrder: "asc" | "desc" = "asc"
+  ) => {
     const response = await api.get<FetchCollegesResponse>("/colleges/", {
-      params: { page, limit },
+      params: {
+        page,
+        limit,
+        sort_by: sortBy,
+        sort_order: sortOrder,
+      },
     });
     return response.data;
   },

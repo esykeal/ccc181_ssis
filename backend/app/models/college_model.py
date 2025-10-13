@@ -79,7 +79,6 @@ class CollegeModel:
             new_row = cur.fetchone()
             conn.commit()
             
-            # ✅ FIX 1: Use 'new_row' here
             return {
                 "id": new_row["id"], 
                 "college_code": new_row["college_code"], 
@@ -111,7 +110,6 @@ class CollegeModel:
             conn.commit()
             
             if updated_row:
-                # ✅ FIX 1: Use 'updated_row' here
                 return {
                     "id": updated_row["id"], 
                     "college_code": updated_row["college_code"], 
@@ -131,7 +129,6 @@ class CollegeModel:
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=DictCursor)
         try:
-            # We don't need DictCursor here, but it's fine. The result is just one column (id)
             cur.execute("DELETE FROM college_table WHERE college_code = %s RETURNING id", (code,))
             deleted_row = cur.fetchone()
             conn.commit()
@@ -150,7 +147,6 @@ class CollegeModel:
         try:
             cur.execute("SELECT COUNT(*) FROM college_table")
             count_row = cur.fetchone()
-            # ✅ FIX 2 (Safer approach): Access by column name 'count'
             return count_row['count'] 
         except Exception as e:
             return 0
@@ -159,30 +155,36 @@ class CollegeModel:
             conn.close()
 
     @classmethod
-    def by_pagination(cls, page: int, limit: int):
+    def by_pagination(cls, page: int, limit: int, sort_by: str = None, sort_order: str = 'ASC'):
         offset = (page - 1) * limit
+
+        allowed_columns = {'college_code', 'college_name', 'id'}
+        
+        if not sort_by or sort_by not in allowed_columns:
+            sort_by = 'id' 
+        
+        if sort_order.upper() not in ['ASC', 'DESC']:
+            sort_order = 'ASC'
+        else:
+            sort_order = sort_order.upper()
 
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=DictCursor)
 
         try:
-            # 1. Fetch paginated data
-            cur.execute(
-                """
+            query = f"""
                 SELECT id, college_code, college_name
                 FROM college_table
-                ORDER BY id
+                ORDER BY {sort_by} {sort_order}
                 LIMIT %s OFFSET %s
-                """,
-                (limit, offset)
-            )
-            # ✅ FIX 2: Clean up corrupted line
+            """
+            
+            cur.execute(query, (limit, offset))
             rows = cur.fetchall()
             
-            # 2. Fetch total count (using AS total for clean access)
             cur.execute("SELECT COUNT(*) AS total_count FROM college_table")
             total_row = cur.fetchone()
-            total = total_row['total_count']
+            total = total_row['total_count'] if total_row else 0
             
             colleges = []
             for row in rows:
