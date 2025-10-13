@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "@/lib/api";
+import collegeApi from "@/api/collegeApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,13 +21,10 @@ export default function AddCollegeDialog({
   onCollegeAdded,
 }: AddCollegeDialogProps) {
   const [open, setOpen] = useState(false);
-
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
-
   const [codeError, setCodeError] = useState("");
   const [nameError, setNameError] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
@@ -64,10 +61,7 @@ export default function AddCollegeDialog({
     setSubmitError("");
 
     try {
-      await api.post("/colleges/", {
-        college_code: code,
-        college_name: name,
-      });
+      await collegeApi.create(code, name);
 
       setOpen(false);
       setCode("");

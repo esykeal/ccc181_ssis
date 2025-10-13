@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import collegeApi from "@/api/collegeApi";
 import type { College } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,10 +47,7 @@ export default function EditCollegeDialog({
     setError("");
 
     try {
-      await api.put(`/colleges/${college.college_code}`, {
-        college_code: code,
-        college_name: name,
-      });
+      await collegeApi.update(college.college_code, code, name);
 
       onOpenChange(false);
       onCollegeUpdated();
