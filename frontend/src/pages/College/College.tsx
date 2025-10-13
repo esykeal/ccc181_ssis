@@ -7,6 +7,7 @@ import PaginationControls from "@/features/Components/PaginationControls";
 import DeleteConfirmationDialog from "@/features/College/CollegeDeleteConfirmationDialog";
 import EditCollegeDialog from "@/features/College/CollegeEditDialog";
 import ErrorDialog from "@/features/Components/ErrorDialog";
+import CollegeSearchBar from "@/features/College/CollegeSearchBar";
 
 export default function CollegePage() {
   const [colleges, setColleges] = useState<College[]>([]);
@@ -29,6 +30,8 @@ export default function CollegePage() {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const [searchQuery, setSearchQuery] = useState("");
+
   const fetchColleges = async () => {
     setLoading(true);
     setError("");
@@ -37,7 +40,8 @@ export default function CollegePage() {
         page,
         limit,
         sortBy,
-        sortOrder
+        sortOrder,
+        searchQuery
       );
       setColleges(response.data || []);
       const totalRecords = response.total || 0;
@@ -51,8 +55,9 @@ export default function CollegePage() {
   };
 
   useEffect(() => {
+    if (searchQuery) setPage(1);
     fetchColleges();
-  }, [page, sortBy, sortOrder]);
+  }, [page, sortBy, sortOrder, searchQuery]);
 
   const handleSort = (column: string) => {
     if (sortBy === column) {
@@ -89,7 +94,7 @@ export default function CollegePage() {
   };
 
   return (
-    <div className="p-8 max-w-5xl mx-auto flex flex-col gap-6 pb-24">
+    <div className="p-8 max-w-5xl mx-auto flex flex-col gap-4 pb-18">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Colleges</h1>
@@ -97,6 +102,10 @@ export default function CollegePage() {
           {error && <p className="text-red-500 mt-2">{error}</p>}
         </div>
         <AddCollegeDialog onCollegeAdded={fetchColleges} />
+      </div>
+
+      <div className="flex justify-between items-center bg-zinc-50 p-2 rounded-lg">
+        <CollegeSearchBar onSearch={setSearchQuery} />
       </div>
 
       <CollegeList
@@ -109,7 +118,7 @@ export default function CollegePage() {
         onSort={handleSort}
       />
 
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-5xl bg-white border-t border-zinc-200 p-4 flex justify-center z-10">
+      <div className="fixed bottom-0 left-3/4 -translate-x-1/2 w-full max-w-5xl p-4 flex justify-center z-10">
         <PaginationControls
           currentPage={page}
           totalPages={totalPages}

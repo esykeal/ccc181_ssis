@@ -11,7 +11,8 @@ const collegeApi = {
     page: number,
     limit: number,
     sortBy: string = "college_code",
-    sortOrder: "asc" | "desc" = "asc"
+    sortOrder: "asc" | "desc" = "asc",
+    search: string = ""
   ) => {
     const response = await api.get<FetchCollegesResponse>("/colleges/", {
       params: {
@@ -19,6 +20,7 @@ const collegeApi = {
         limit,
         sort_by: sortBy,
         sort_order: sortOrder,
+        search: search,
       },
     });
     return response.data;

@@ -2,8 +2,7 @@ import {
   Pagination,
   PaginationContent,
   PaginationItem,
-  PaginationLink, // This component is crucial for the numbered links
-  // PaginationNext and PaginationPrevious components are unnecessary if using Buttons, but we'll keep the import for clarity
+  PaginationLink,
 } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 

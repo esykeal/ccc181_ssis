@@ -155,7 +155,7 @@ class CollegeModel:
             conn.close()
 
     @classmethod
-    def by_pagination(cls, page: int, limit: int, sort_by: str = None, sort_order: str = 'ASC'):
+    def by_pagination(cls, page: int, limit: int, sort_by: str = None, sort_order: str = 'ASC', search: str = ''):
         offset = (page - 1) * limit
 
         allowed_columns = {'college_code', 'college_name', 'id'}
@@ -172,17 +172,31 @@ class CollegeModel:
         cur = conn.cursor(cursor_factory=DictCursor)
 
         try:
-            query = f"""
+            base_query = """
                 SELECT id, college_code, college_name
                 FROM college_table
-                ORDER BY {sort_by} {sort_order}
-                LIMIT %s OFFSET %s
             """
+            count_query = "SELECT COUNT(*) AS total_count FROM college_table"
             
-            cur.execute(query, (limit, offset))
+            params = []
+            
+            if search:
+                search_term = f"%{search}%"
+                where_clause = " WHERE (college_code ILIKE %s OR college_name ILIKE %s)"
+                
+                base_query += where_clause
+                count_query += where_clause
+                params.extend([search_term, search_term])
+
+            base_query += f" ORDER BY {sort_by} {sort_order} LIMIT %s OFFSET %s"
+            params.extend([limit, offset])
+
+            cur.execute(base_query, tuple(params))
             rows = cur.fetchall()
             
-            cur.execute("SELECT COUNT(*) AS total_count FROM college_table")
+            count_params = [search_term, search_term] if search else []
+            cur.execute(count_query, tuple(count_params))
+            
             total_row = cur.fetchone()
             total = total_row['total_count'] if total_row else 0
             

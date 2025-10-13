@@ -3,17 +3,18 @@ from app.models.college_model import CollegeModel
 
 college_bp = Blueprint('colleges', __name__, url_prefix='/colleges')
 
-# --- 1. LIST ---
 @college_bp.route('/', methods=['GET'])
 def get_colleges():
     page = request.args.get('page', type=int)
     limit = request.args.get('limit', type=int)
-    
     sort_by = request.args.get('sort_by', 'college_code')
     sort_order = request.args.get('sort_order', 'asc')
     
+    search = request.args.get('search', '') 
+
     if page is not None and limit is not None:
-        return get_paginated_colleges_handler(page, limit, sort_by, sort_order)
+ 
+        return get_paginated_colleges_handler(page, limit, sort_by, sort_order, search)
     
     try:
         colleges = CollegeModel.get_all()
@@ -21,13 +22,13 @@ def get_colleges():
     except Exception as e:
         return jsonify({"error": f"Database error: {e}"}), 500
 
-def get_paginated_colleges_handler(page: int, limit: int, sort_by: str, sort_order: str):
+def get_paginated_colleges_handler(page: int, limit: int, sort_by: str, sort_order: str, search: str):
     """Handles the pagination query and response structuring."""
     try:
         page = max(1, page)
         limit = max(1, limit)
         
-        pagination_data = CollegeModel.by_pagination(page, limit, sort_by, sort_order)
+        pagination_data = CollegeModel.by_pagination(page, limit, sort_by, sort_order, search)
         
         return jsonify(pagination_data), 200
 
@@ -37,7 +38,6 @@ def get_paginated_colleges_handler(page: int, limit: int, sort_by: str, sort_ord
             "error": "Internal Server Error",
             "message": "Could not retrieve paginated college data."
         }), 500
-
 
 # --- 2. READ: Get one college by code ---
 @college_bp.route('/<string:code>', methods=['GET'])
