@@ -1,4 +1,5 @@
 from app.db import get_db_connection
+from psycopg2.extras import DictCursor
 
 class StudentModel:
     def __init__(self, id, student_id, firstname, lastname, program_code, year, gender):
@@ -26,13 +27,13 @@ class StudentModel:
         students = []
         for row in rows:
             students.append({
-                "id": row[0],
-                "student_id": row[1],
-                "firstname": row[2],
-                "lastname": row[3],
-                "program_code": row[4],
-                "year": row[5],
-                "gender": row[6]
+                "id": row["id"],
+                "student_id": row["student_id"],
+                "firstname": row["firstname"],
+                "lastname": row["lastname"],
+                "program_code": row["program_code"],
+                "year": row["year"],
+                "gender": row["gender"]
             })
         return students
 
@@ -52,13 +53,13 @@ class StudentModel:
 
         if row:
             return {
-                "id": row[0],
-                "student_id": row[1],
-                "firstname": row[2],
-                "lastname": row[3],
-                "program_code": row[4],
-                "year": row[5],
-                "gender": row[6]
+                "id": row["id"],
+                "student_id": row["student_id"],
+                "firstname": row["firstname"],
+                "lastname": row["lastname"],
+                "program_code": row["program_code"],
+                "year": row["year"],
+                "gender": row["gender"]
             }
         return None
 
@@ -76,13 +77,13 @@ class StudentModel:
             new_row = cur.fetchone()
             conn.commit()
             return {
-                "id": new_row[0],
-                "student_id": new_row[1],
-                "firstname": new_row[2],
-                "lastname": new_row[3],
-                "program_code": new_row[4],
-                "year": new_row[5],
-                "gender": new_row[6]
+                "id": new_row["id"],
+                "student_id": new_row["student_id"],
+                "firstname": new_row["firstname"],
+                "lastname": new_row["lastname"],
+                "program_code": new_row["program_code"],
+                "year": new_row["year"],
+                "gender": new_row["gender"]
             }
         except Exception as e:
             conn.rollback()
@@ -109,13 +110,13 @@ class StudentModel:
             
             if updated_row:
                 return {
-                    "id": updated_row[0],
-                    "student_id": updated_row[1],
-                    "firstname": updated_row[2],
-                    "lastname": updated_row[3],
-                    "program_code": updated_row[4],
-                    "year": updated_row[5],
-                    "gender": updated_row[6]
+                "id": updated_row["id"],
+                "student_id": updated_row["student_id"],
+                "firstname": updated_row["firstname"],
+                "lastname": updated_row["lastname"],
+                "program_code": updated_row["program_code"],
+                "year": updated_row["year"],
+                "gender": updated_row["gender"]
                 }
             return None
         except Exception as e:
@@ -152,6 +153,82 @@ class StudentModel:
             return count
         except Exception as e:
             return 0
+        finally:
+            cur.close()
+            conn.close()
+
+    #
+    @classmethod
+    def by_pagination(cls, page: int, limit: int, sort_by: str = None, sort_order: str = 'ASC', search: str = ''):
+        offset = (page - 1) * limit
+
+        # 1. Allowlist
+        allowed_columns = {'student_id', 'firstname', 'lastname', 'program_code', 'year', 'gender'}
+        if not sort_by or sort_by not in allowed_columns:
+            sort_by = 'student_id'
+        
+        if sort_order.upper() not in ['ASC', 'DESC']:
+            sort_order = 'ASC'
+        else:
+            sort_order = sort_order.upper()
+
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=DictCursor)
+
+        try:
+            base_query = """
+                SELECT id, student_id, firstname, lastname, program_code, year, gender
+                FROM student_table
+            """
+            count_query = "SELECT COUNT(*) AS total_count FROM student_table"
+
+            params = []
+
+            if search:
+                search_term = f"%{search}%"
+                where_clause = """
+                    WHERE (student_id ILIKE %s 
+                        OR firstname ILIKE %s 
+                        OR lastname ILIKE %s 
+                        OR gender ILIKE %s 
+                        OR year::text ILIKE %s)
+                """
+                base_query += where_clause
+                count_query += where_clause
+                params.extend([search_term] * 5) 
+
+            # 3. Sort & Paginate
+            base_query += f" ORDER BY {sort_by} {sort_order} LIMIT %s OFFSET %s"
+            params.extend([limit, offset])
+
+            cur.execute(base_query, tuple(params))
+            rows = cur.fetchall()
+
+            # 4. Count Total
+            count_params = [search_term] * 5 if search else []
+            cur.execute(count_query, tuple(count_params))
+            total_row = cur.fetchone()
+            total = total_row['total_count'] if total_row else 0
+
+            students = []
+            for row in rows:
+                students.append({
+                    "id": row["id"],
+                    "student_id": row["student_id"],
+                    "firstname": row["firstname"],
+                    "lastname": row["lastname"],
+                    "program_code": row["program_code"],
+                    "year": row["year"],
+                    "gender": row["gender"]
+                }) 
+
+            return {
+                "data": students,
+                "page": page,
+                "limit": limit,
+                "total": total
+            }
+        
         finally:
             cur.close()
             conn.close()
