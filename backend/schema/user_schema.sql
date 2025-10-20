@@ -1,0 +1,8 @@
+DROP TABLE IF EXISTS user_table CASCADE;
+
+CREATE TABLE IF NOT EXISTS user_table (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(50) UNIQUE NOT NULL,
+    user_password VARCHAR(255) NOT NULL
+)
