@@ -3,11 +3,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, X } from "lucide-react";
 
-interface CollegeSearchBarProps {
+interface StudentSearchBarProps {
   onSearch: (query: string) => void;
 }
 
-export default function CollegeSearchBar({ onSearch }: CollegeSearchBarProps) {
+export default function StudentSearchBar({ onSearch }: StudentSearchBarProps) {
   const [query, setQuery] = useState("");
 
   const handleSearch = () => {
@@ -30,7 +30,7 @@ export default function CollegeSearchBar({ onSearch }: CollegeSearchBarProps) {
       <div className="relative w-full">
         <Input
           type="text"
-          placeholder="Search by code or name..."
+          placeholder="Search ID, name, program, gender..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}

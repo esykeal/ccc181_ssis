@@ -29,7 +29,6 @@ def get_paginated_programs_handler(page, limit, sort_by, sort_order, search):
     try:
         page = max(1, page)
         limit = max(1, limit)
-        # Call the new model method
         pagination_data = ProgramModel.by_pagination(page, limit, sort_by, sort_order, search)
         return jsonify(pagination_data), 200
     except Exception as e:

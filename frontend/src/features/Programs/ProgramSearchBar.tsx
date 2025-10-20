@@ -46,7 +46,11 @@ export default function ProgramSearchBar({ onSearch }: ProgramSearchBarProps) {
           </button>
         )}
       </div>
-      <Button onClick={handleSearch} variant="secondary">
+      <Button
+        onClick={handleSearch}
+        variant="secondary"
+        className="border border-neutral-500 hover:border-none hover:bg-neutral-300"
+      >
         <Search className="h-4 w-4 mr-2" />
         Search
       </Button>

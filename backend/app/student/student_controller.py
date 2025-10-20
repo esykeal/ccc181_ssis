@@ -6,7 +6,33 @@ student_bp = Blueprint('student', __name__, url_prefix='/student')
 
 @student_bp.route('/', methods=['GET'])
 def get_students():
+    page = request.args.get('page', type=int)
+    limit = request.args.get('limit', type=int)
+    sort_by = request.args.get('sort_by', 'student_id')
+    sort_order = request.args.get('sort_order', 'asc')
+    search = request.args.get('search', '')
+
+    if page is not None and limit is not None:
+        return get_paginated_student_handler(page, limit, sort_by, sort_order, search)
+
+    try:
+        students = StudentModel.get_all()
+        return jsonify(students)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
     return jsonify(StudentModel.get_all())
+
+def get_paginated_student_handler(page, limit, sort_by, sort_order, search):
+    try:
+        page = max(1, page)
+        limit = max(1, limit)
+
+        pagination_data = StudentModel.by_pagination(page, limit, sort_by, sort_order, search)
+        return jsonify(pagination_data), 200
+    except Exception as e:
+        print(f"Error fetching paginated programs: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @student_bp.route('/<string:student_id>', methods=['GET'])
 def get_student(student_id):
@@ -20,7 +46,6 @@ def add_student():
     data = request.json
     required_fields = ['student_id', 'firstname', 'lastname', 'program_code', 'year', 'gender']
     
-    # Check if all fields are present
     for field in required_fields:
         if field not in data:
             return jsonify({"error": f"Missing field: {field}"}), 400

@@ -7,7 +7,6 @@ interface FetchProgramsResponse {
 }
 
 const programApi = {
-  // 1. FETCH ALL (With Pagination, Sort, Search)
   fetchAll: async (
     page: number,
     limit: number,

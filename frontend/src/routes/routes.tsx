@@ -3,8 +3,7 @@ import App from "@/App";
 import Dashboard from "@/features/Components/Dashboard";
 import CollegePage from "@/pages/College/College";
 import ProgramPage from "@/pages/Program/Program";
-import StudentList from "@/features/Student/StudentList";
-
+import StudentPage from "@/pages/Student/Student";
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -18,7 +17,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "students",
-        element: <StudentList />,
+        element: <StudentPage />,
       },
     ],
   },

@@ -22,7 +22,6 @@ export default function ProgramList({
   sortOrder,
   onSort,
 }: ProgramListProps) {
-  // Helper to render sort arrows
   const getSortIcon = (column: string) => {
     if (sortBy !== column)
       return <ArrowUpDown className="ml-2 h-4 w-4 text-zinc-400" />;

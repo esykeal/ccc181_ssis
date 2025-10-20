@@ -172,12 +172,10 @@ class ProgramModel:
             cur.close()
             conn.close()    
 
-    # --- PAGINATION & SEARCH (This was missing!) ---
     @classmethod
     def by_pagination(cls, page: int, limit: int, sort_by: str = None, sort_order: str = 'ASC', search: str = ''):
         offset = (page - 1) * limit
 
-        # 1. Allowlist for Security
         allowed_columns = {'program_code', 'program_name', 'college_code', 'id'}
 
         if not sort_by or sort_by not in allowed_columns:
@@ -192,7 +190,6 @@ class ProgramModel:
         cur = conn.cursor(cursor_factory=DictCursor)
 
         try:
-            # 2. Build Base Query
             base_query = """
                 SELECT id, program_code, program_name, college_code
                 FROM program_table
@@ -201,25 +198,20 @@ class ProgramModel:
 
             params = []
 
-            # 3. Add Search Logic (ILIKE)
             if search:
                 search_term = f"%{search}%"
                 where_clause = " WHERE (program_code ILIKE %s OR program_name ILIKE %s OR college_code ILIKE %s)"
 
                 base_query += where_clause
                 count_query += where_clause
-                # Add params 3 times because we have 3 placeholders (?)
                 params.extend([search_term, search_term, search_term]) 
 
-            # 4. Add Sorting and Limits
             base_query += f" ORDER BY {sort_by} {sort_order} LIMIT %s OFFSET %s"
             params.extend([limit, offset])
 
-            # 5. Execute Data Query
             cur.execute(base_query, tuple(params))
             rows = cur.fetchall()
             
-            # 6. Execute Count Query (for pagination numbers)
             count_params = [search_term, search_term, search_term] if search else []
             cur.execute(count_query, tuple(count_params))
             
