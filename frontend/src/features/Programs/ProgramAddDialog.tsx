@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
-import type { College } from "@/types";
+import programApi from "@/api/programApi"; //
+import collegeApi from "@/api/collegeApi"; //
+import type { College } from "@/types"; //
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,9 +40,10 @@ export default function AddProgramDialog({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    api
-      .get("/colleges/")
-      .then((res) => setColleges(res.data))
+    // FIX: Use the centralized collegeApi to fetch the list
+    collegeApi
+      .fetchAll(1, 100) // Fetch enough colleges for the dropdown
+      .then((data) => setColleges(data.data || [])) // Handle the paginated response structure
       .catch((err) =>
         console.error("Failed to load colleges for dropdown", err)
       );
@@ -53,11 +55,8 @@ export default function AddProgramDialog({
     setError("");
 
     try {
-      await api.post("/programs/", {
-        program_code: code,
-        program_name: name,
-        college_code: selectedCollege,
-      });
+      // FIX: Use the centralized programApi
+      await programApi.create(code, name, selectedCollege);
 
       setOpen(false);
       setCode("");
@@ -118,7 +117,7 @@ export default function AddProgramDialog({
             />
           </div>
 
-          {/* College Dropdown*/}
+          {/* College Dropdown */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">College</Label>
             <div className="col-span-3">
@@ -130,7 +129,9 @@ export default function AddProgramDialog({
                 <SelectTrigger>
                   <SelectValue placeholder="Select a college..." />
                 </SelectTrigger>
-                <SelectContent>
+
+                {/* FIX: Added className="max-h-[200px]" to force scrolling */}
+                <SelectContent className="max-h-[200px]">
                   {colleges.length === 0 ? (
                     <div className="p-2 text-sm text-zinc-500">
                       No colleges found

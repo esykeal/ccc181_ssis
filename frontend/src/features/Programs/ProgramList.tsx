@@ -1,101 +1,102 @@
-import { useEffect, useState } from "react";
-import api from "@/lib/api";
-import type { Program } from "@/types";
+import type { Program } from "@/types"; //
 import { Button } from "@/components/ui/button";
-import AddProgramDialog from "./ProgramAddDialog";
-import DeleteConfirmationDialog from "./ProgramDeleteConfirmationDialog";
-import EditProgramDialog from "./ProgramEditDialog";
-import ErrorDialog from "@/features/Components/ErrorDialog";
+import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 
-export default function ProgramList() {
-  const [programs, setPrograms] = useState<Program[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+// Define what props this component needs
+interface ProgramListProps {
+  programs: Program[];
+  loading: boolean;
+  onEdit: (program: Program) => void;
+  onDelete: (code: string) => void;
+  sortBy: string;
+  sortOrder: "asc" | "desc";
+  onSort: (column: string) => void;
+}
 
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [programToDelete, setProgramToDelete] = useState<string | null>(null);
-
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [programToEdit, setProgramToEdit] = useState<Program | null>(null);
-
-  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const fetchPrograms = () => {
-    setLoading(true);
-    api
-      .get("/programs/")
-      .then((response) => {
-        setPrograms(response.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("API Error:", err);
-        setError("Failed to load programs.");
-        setLoading(false);
-      });
+export default function ProgramList({
+  programs,
+  loading,
+  onEdit,
+  onDelete,
+  sortBy,
+  sortOrder,
+  onSort,
+}: ProgramListProps) {
+  // Helper to render sort arrows
+  const getSortIcon = (column: string) => {
+    if (sortBy !== column)
+      return <ArrowUpDown className="ml-2 h-4 w-4 text-zinc-400" />;
+    return sortOrder === "asc" ? (
+      <ArrowUp className="ml-2 h-4 w-4 text-black" />
+    ) : (
+      <ArrowDown className="ml-2 h-4 w-4 text-black" />
+    );
   };
-
-  useEffect(() => {
-    fetchPrograms();
-  }, []);
-
-  const initiateDelete = (code: string) => {
-    setProgramToDelete(code);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!programToDelete) return;
-    try {
-      await api.delete(`/programs/${programToDelete}`);
-      setDeleteDialogOpen(false);
-      setProgramToDelete(null);
-      fetchPrograms();
-    } catch (err: any) {
-      setDeleteDialogOpen(false);
-
-      const msg = err.response?.data?.error || "Failed to delete program";
-
-      setErrorMessage(msg);
-      setErrorDialogOpen(true);
-    }
-  };
-
-  const handleEdit = (program: Program) => {
-    setProgramToEdit(program);
-    setEditDialogOpen(true);
-  };
-
-  if (loading && programs.length === 0)
-    return <p className="text-center p-4">Loading programs...</p>;
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Programs</h1>
-          <p className="text-zinc-500 text-sm">Manage academic courses</p>
-        </div>
-        <AddProgramDialog onProgramAdded={fetchPrograms} />
-      </div>
+    <div className="border rounded-lg overflow-hidden shadow-sm bg-white">
+      <table className="w-full text-left text-sm">
+        <thead className="bg-zinc-50 border-b">
+          <tr>
+            {/* Sortable Code Header */}
+            <th className="p-4 font-medium text-zinc-500">
+              <button
+                onClick={() => onSort("program_code")}
+                className="flex items-center hover:text-black transition-colors font-medium"
+              >
+                Code
+                {getSortIcon("program_code")}
+              </button>
+            </th>
 
-      <div className="border rounded-lg overflow-hidden shadow-sm bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-zinc-50 border-b">
+            {/* Sortable Name Header */}
+            <th className="p-4 font-medium text-zinc-500">
+              <button
+                onClick={() => onSort("program_name")}
+                className="flex items-center hover:text-black transition-colors font-medium"
+              >
+                Name
+                {getSortIcon("program_name")}
+              </button>
+            </th>
+
+            {/* Sortable College Header */}
+            <th className="p-4 font-medium text-zinc-500">
+              <button
+                onClick={() => onSort("college_code")}
+                className="flex items-center hover:text-black transition-colors font-medium"
+              >
+                College
+                {getSortIcon("college_code")}
+              </button>
+            </th>
+
+            <th className="p-4 font-medium text-zinc-500 text-right">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {loading && (
             <tr>
-              <th className="p-4 font-medium text-zinc-500">Code</th>
-              <th className="p-4 font-medium text-zinc-500">Name</th>
-              <th className="p-4 font-medium text-zinc-500">College</th>
-              <th className="p-4 font-medium text-zinc-500 text-right">
-                Actions
-              </th>
+              <td colSpan={4} className="p-8 text-center text-zinc-500">
+                Loading programs...
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {programs.map((program) => (
+          )}
+
+          {!loading && programs.length === 0 && (
+            <tr>
+              <td colSpan={4} className="p-8 text-center text-zinc-500">
+                No programs found.
+              </td>
+            </tr>
+          )}
+
+          {!loading &&
+            programs.map((program) => (
               <tr
-                key={program.id}
+                key={program.id || program.program_code}
                 className="border-b last:border-0 hover:bg-zinc-50"
               >
                 <td className="p-4 font-medium">{program.program_code}</td>
@@ -109,45 +110,22 @@ export default function ProgramList() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleEdit(program)}
+                    onClick={() => onEdit(program)}
                   >
                     Edit
                   </Button>
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => initiateDelete(program.program_code)}
+                    onClick={() => onDelete(program.program_code)}
                   >
                     Delete
                   </Button>
                 </td>
               </tr>
             ))}
-          </tbody>
-        </table>
-      </div>
-
-      <DeleteConfirmationDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        onConfirm={confirmDelete}
-        title={`Delete ${programToDelete}?`}
-        description="Are you sure? This cannot be undone."
-      />
-
-      <EditProgramDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        program={programToEdit}
-        onProgramUpdated={fetchPrograms}
-      />
-
-      <ErrorDialog
-        open={errorDialogOpen}
-        onOpenChange={setErrorDialogOpen}
-        title="Unable to Delete"
-        description={errorMessage}
-      />
+        </tbody>
+      </table>
     </div>
   );
 }

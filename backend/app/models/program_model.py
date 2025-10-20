@@ -1,4 +1,6 @@
+#
 from app.db import get_db_connection
+from psycopg2.extras import DictCursor
 
 class ProgramModel:
     def __init__(self, id, program_code, program_name, college_code):
@@ -11,9 +13,8 @@ class ProgramModel:
     @classmethod
     def get_all(cls):
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=DictCursor)
         
-        # We select all columns, including the foreign key college_code
         cur.execute("SELECT id, program_code, program_name, college_code FROM program_table")
         rows = cur.fetchall()
         
@@ -23,10 +24,10 @@ class ProgramModel:
         programs = []
         for row in rows:
             programs.append({
-                "id": row[0],
-                "program_code": row[1],
-                "program_name": row[2],
-                "college_code": row[3]
+                "id": row["id"],
+                "program_code": row["program_code"],
+                "program_name": row["program_name"],
+                "college_code": row["college_code"]
             })
         return programs
 
@@ -34,7 +35,7 @@ class ProgramModel:
     @classmethod
     def get_by_code(cls, code):
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=DictCursor)
         
         cur.execute("""
             SELECT id, program_code, program_name, college_code 
@@ -48,17 +49,17 @@ class ProgramModel:
 
         if row:
             return {
-                "id": row[0],
-                "program_code": row[1],
-                "program_name": row[2],
-                "college_code": row[3]
+                "id": row["id"],
+                "program_code": row["program_code"],
+                "program_name": row["program_name"],
+                "college_code": row["college_code"]
             }
         return None
     
     @classmethod
     def get_by_name(cls, program_name):
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=DictCursor)
         cur.execute("""
             SELECT id, program_code, program_name, college_code 
             FROM program_table 
@@ -70,10 +71,10 @@ class ProgramModel:
 
         if row:
             return {
-                "id": row[0],
-                "program_code": row[1],
-                "program_name": row[2],
-                "college_code": row[3]
+                "id": row["id"],
+                "program_code": row["program_code"],
+                "program_name": row["program_name"],
+                "college_code": row["college_code"]
             }
         return None
 
@@ -81,9 +82,8 @@ class ProgramModel:
     @classmethod
     def add(cls, code, name, college_code):
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=DictCursor)
         try:
-            # We must include college_code in the INSERT
             cur.execute(
                 """
                 INSERT INTO program_table (program_code, program_name, college_code) 
@@ -96,10 +96,10 @@ class ProgramModel:
             conn.commit()
             
             return {
-                "id": new_row[0],
-                "program_code": new_row[1],
-                "program_name": new_row[2],
-                "college_code": new_row[3]
+                "id": new_row["id"],
+                "program_code": new_row["program_code"],
+                "program_name": new_row["program_name"],
+                "college_code": new_row["college_code"]
             }
         except Exception as e:
             conn.rollback()
@@ -112,7 +112,7 @@ class ProgramModel:
     @classmethod
     def update(cls, original_code, new_code, new_name, new_college_code):
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=DictCursor)
         try:
             cur.execute(
                 """
@@ -128,10 +128,10 @@ class ProgramModel:
             
             if updated_row:
                 return {
-                    "id": updated_row[0],
-                    "program_code": updated_row[1],
-                    "program_name": updated_row[2],
-                    "college_code": updated_row[3]
+                    "id": updated_row["id"],
+                    "program_code": updated_row["program_code"],
+                    "program_name": updated_row["program_name"],
+                    "college_code": updated_row["college_code"]
                 }
             return None
         except Exception as e:
@@ -145,7 +145,7 @@ class ProgramModel:
     @classmethod
     def delete(cls, code):
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=DictCursor)
         try:
             cur.execute("DELETE FROM program_table WHERE program_code = %s RETURNING id", (code,))
             deleted_id = cur.fetchone()
@@ -161,7 +161,7 @@ class ProgramModel:
     @classmethod
     def get_count(cls):
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=DictCursor)
         try:
             cur.execute("SELECT COUNT(*) FROM program_table")
             count = cur.fetchone()[0]
@@ -171,3 +171,77 @@ class ProgramModel:
         finally:
             cur.close()
             conn.close()    
+
+    # --- PAGINATION & SEARCH (This was missing!) ---
+    @classmethod
+    def by_pagination(cls, page: int, limit: int, sort_by: str = None, sort_order: str = 'ASC', search: str = ''):
+        offset = (page - 1) * limit
+
+        # 1. Allowlist for Security
+        allowed_columns = {'program_code', 'program_name', 'college_code', 'id'}
+
+        if not sort_by or sort_by not in allowed_columns:
+            sort_by = 'id'
+
+        if sort_order.upper() not in ['ASC', 'DESC']:
+            sort_order = 'ASC'
+        else:
+            sort_order = sort_order.upper()
+
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=DictCursor)
+
+        try:
+            # 2. Build Base Query
+            base_query = """
+                SELECT id, program_code, program_name, college_code
+                FROM program_table
+            """
+            count_query = "SELECT COUNT(*) AS total_count FROM program_table"
+
+            params = []
+
+            # 3. Add Search Logic (ILIKE)
+            if search:
+                search_term = f"%{search}%"
+                where_clause = " WHERE (program_code ILIKE %s OR program_name ILIKE %s OR college_code ILIKE %s)"
+
+                base_query += where_clause
+                count_query += where_clause
+                # Add params 3 times because we have 3 placeholders (?)
+                params.extend([search_term, search_term, search_term]) 
+
+            # 4. Add Sorting and Limits
+            base_query += f" ORDER BY {sort_by} {sort_order} LIMIT %s OFFSET %s"
+            params.extend([limit, offset])
+
+            # 5. Execute Data Query
+            cur.execute(base_query, tuple(params))
+            rows = cur.fetchall()
+            
+            # 6. Execute Count Query (for pagination numbers)
+            count_params = [search_term, search_term, search_term] if search else []
+            cur.execute(count_query, tuple(count_params))
+            
+            total_row = cur.fetchone()
+            total = total_row['total_count'] if total_row else 0
+            
+            programs = []
+            for row in rows:
+                programs.append({
+                    "id": row["id"], 
+                    "program_code": row["program_code"], 
+                    "program_name": row["program_name"],
+                    "college_code" : row["college_code"]
+                })
+                
+            return {
+                    "data": programs,
+                    "page": page,
+                    "limit": limit,
+                    "total": total
+                }
+
+        finally:
+            cur.close()
+            conn.close()

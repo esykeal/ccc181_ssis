@@ -1,15 +1,40 @@
+#
 from flask import Blueprint, jsonify, request
 from app.models.program_model import ProgramModel
 from app.models.college_model import CollegeModel
 
-# Define Blueprint
 program_bp = Blueprint('programs', __name__, url_prefix='/programs')
 
-# --- LIST (Get All) ---
+# --- LIST (Get All / Pagination) ---
 @program_bp.route('/', methods=['GET'])
 def get_programs():
-    programs = ProgramModel.get_all()
-    return jsonify(programs)
+    page = request.args.get('page', type=int)
+    limit = request.args.get('limit', type=int)
+    sort_by = request.args.get('sort_by', 'program_code')
+    sort_order = request.args.get('sort_order', 'asc')
+    search = request.args.get('search', '')
+
+    # Use pagination if 'page' and 'limit' are provided
+    if page is not None and limit is not None:
+        return get_paginated_programs_handler(page, limit, sort_by, sort_order, search)
+    
+    # Fallback: Get all (if no pagination params)
+    try:
+        programs = ProgramModel.get_all()
+        return jsonify(programs)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+def get_paginated_programs_handler(page, limit, sort_by, sort_order, search):
+    try:
+        page = max(1, page)
+        limit = max(1, limit)
+        # Call the new model method
+        pagination_data = ProgramModel.by_pagination(page, limit, sort_by, sort_order, search)
+        return jsonify(pagination_data), 200
+    except Exception as e:
+        print(f"Error fetching paginated programs: {e}")
+        return jsonify({"error": str(e)}), 500
 
 # --- READ (Get One) ---
 @program_bp.route('/<string:code>', methods=['GET'])
@@ -24,9 +49,8 @@ def get_program(code):
 def add_program():
     data = request.json
     
-    # Validate required fields
     if not data or 'program_code' not in data or 'program_name' not in data or 'college_code' not in data:
-        return jsonify({"error": "Missing required fields: program_code, program_name, or college_code"}), 400\
+        return jsonify({"error": "Missing required fields"}), 400
         
     if not CollegeModel.get_by_code(data['college_code']):
         return jsonify({"error": "College code does not exist"}), 400
@@ -42,9 +66,6 @@ def add_program():
         error_msg = str(e)
         if "duplicate key value" in error_msg:
              return jsonify({"error": "Program code already exists"}), 409
-        if "foreign key constraint" in error_msg:
-            return jsonify({"error": "College code does not exist"}), 400
-            
         return jsonify({"error": error_msg}), 500
 
 # --- UPDATE ---
@@ -62,18 +83,15 @@ def update_program(code):
     new_name = data.get('program_name', current_program['program_name'])
     new_college = data.get('college_code', current_program['college_code'])
 
-    if new_code != current_program['program_code']:
-        if ProgramModel.get_by_code(new_code):
-            return jsonify({"error": f"Program code '{new_code}' already exists"}), 400
+    # Validation: Check for duplicates only if values changed
+    if new_code != current_program['program_code'] and ProgramModel.get_by_code(new_code):
+        return jsonify({"error": f"Program code '{new_code}' already exists"}), 400
 
-    if new_name != current_program['program_name']:
-        if ProgramModel.get_by_name(new_name):
-            return jsonify({"error": f"Program name '{new_name}' already exists"}), 400
+    if new_name != current_program['program_name'] and ProgramModel.get_by_name(new_name):
+        return jsonify({"error": f"Program name '{new_name}' already exists"}), 400
 
-    if new_college != current_program['college_code']:
-         from app.models.college_model import CollegeModel
-         if not CollegeModel.get_by_code(new_college):
-             return jsonify({"error": "New college code does not exist"}), 400
+    if new_college != current_program['college_code'] and not CollegeModel.get_by_code(new_college):
+        return jsonify({"error": "New college code does not exist"}), 400
 
     try:
         updated_program = ProgramModel.update(code, new_code, new_name, new_college)
@@ -94,8 +112,8 @@ def delete_program(code):
         
     except Exception as e:
         error_msg = str(e)
-        if "update or delete on table" in error_msg and "violates foreign key constraint" in error_msg:
+        if "violates foreign key constraint" in error_msg:
              return jsonify({
-                 "error": "Cannot delete this program because it has enrolled students. Please delete the students first."
+                 "error": "Cannot delete program. It has enrolled students."
              }), 400
         return jsonify({"error": error_msg}), 500

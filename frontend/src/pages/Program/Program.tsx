@@ -1,64 +1,70 @@
 import { useEffect, useState } from "react";
-import type { College } from "@/types";
-import collegeApi from "@/api/collegeApi";
-import CollegeList from "@/features/College/CollegeList";
-import AddCollegeDialog from "@/features/College/CollegeAddDialog";
+import type { Program } from "@/types";
+import programApi from "@/api/programApi";
+import ProgramList from "@/features/Programs/ProgramList";
+import AddProgramDialog from "@/features/Programs/ProgramAddDialog";
 import PaginationControls from "@/features/Components/PaginationControls";
-import DeleteConfirmationDialog from "@/features/College/CollegeDeleteConfirmationDialog";
-import EditCollegeDialog from "@/features/College/CollegeEditDialog";
+import DeleteConfirmationDialog from "@/features/Programs/ProgramDeleteConfirmationDialog";
+import EditProgramDialog from "@/features/Programs/ProgramEditDialog";
 import ErrorDialog from "@/features/Components/ErrorDialog";
-import CollegeSearchBar from "@/features/College/CollegeSearchBar";
+import ProgramSearchBar from "@/features/Programs/ProgramSearchBar";
 
-export default function CollegePage() {
-  const [colleges, setColleges] = useState<College[]>([]);
+export default function ProgramPage() {
+  // --- 1. STATE (The Brain) ---
+  const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Pagination
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit] = useState(10);
 
+  // Sorting & Search
   const [sortBy, setSortBy] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [searchQuery, setSearchQuery] = useState("");
 
+  // Dialog States
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [collegeToDelete, setCollegeToDelete] = useState<string | null>(null);
+  const [programToDelete, setProgramToDelete] = useState<string | null>(null);
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [collegeToEdit, setCollegeToEdit] = useState<College | null>(null);
+  const [programToEdit, setProgramToEdit] = useState<Program | null>(null);
 
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const fetchColleges = async () => {
+  // --- 2. API ACTIONS ---
+  const fetchPrograms = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await collegeApi.fetchAll(
+      const response = await programApi.fetchAll(
         page,
         limit,
         sortBy,
         sortOrder,
         searchQuery
       );
-      setColleges(response.data || []);
+      setPrograms(response.data || []);
       const totalRecords = response.total || 0;
       setTotalPages(Math.ceil(totalRecords / limit));
     } catch (err) {
       console.error("API Error:", err);
-      setError("Failed to load colleges.");
+      setError("Failed to load programs.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Trigger fetch when these change
   useEffect(() => {
-    if (searchQuery) setPage(1);
-    fetchColleges();
+    if (searchQuery) setPage(1); // Reset to page 1 on new search
+    fetchPrograms();
   }, [page, sortBy, sortOrder, searchQuery]);
 
+  // --- 3. EVENT HANDLERS ---
   const handleSort = (column: string) => {
     if (sortBy === column) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -69,47 +75,50 @@ export default function CollegePage() {
   };
 
   const handleInitiateDelete = (code: string) => {
-    setCollegeToDelete(code);
+    setProgramToDelete(code);
     setDeleteDialogOpen(true);
   };
 
   const handleConfirmDelete = async () => {
-    if (!collegeToDelete) return;
+    if (!programToDelete) return;
     try {
-      await collegeApi.delete(collegeToDelete);
+      await programApi.delete(programToDelete);
       setDeleteDialogOpen(false);
-      setCollegeToDelete(null);
-      fetchColleges();
+      setProgramToDelete(null);
+      fetchPrograms();
     } catch (err: any) {
       setDeleteDialogOpen(false);
-      const msg = err.response?.data?.error || "Failed to delete college";
+      const msg = err.response?.data?.error || "Failed to delete program";
       setErrorMessage(msg);
       setErrorDialogOpen(true);
     }
   };
 
-  const handleInitiateEdit = (college: College) => {
-    setCollegeToEdit(college);
+  const handleInitiateEdit = (program: Program) => {
+    setProgramToEdit(program);
     setEditDialogOpen(true);
   };
 
   return (
     <div className="p-8 max-w-5xl mx-auto flex flex-col gap-4 pb-18">
+      {/* HEADER & ADD BUTTON */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">Colleges</h1>
-          <p className="text-zinc-500 text-sm">Manage university's colleges</p>
+          <h1 className="text-2xl font-bold">Programs</h1>
+          <p className="text-zinc-500 text-sm">Manage academic courses</p>
           {error && <p className="text-red-500 mt-2">{error}</p>}
         </div>
-        <AddCollegeDialog onCollegeAdded={fetchColleges} />
+        <AddProgramDialog onProgramAdded={fetchPrograms} />
       </div>
 
+      {/* SEARCH BAR */}
       <div className="flex justify-between items-center bg-zinc-50 p-2">
-        <CollegeSearchBar onSearch={setSearchQuery} />
+        <ProgramSearchBar onSearch={setSearchQuery} />
       </div>
 
-      <CollegeList
-        colleges={colleges}
+      {/* TABLE (Pure UI) */}
+      <ProgramList
+        programs={programs}
         loading={loading}
         onEdit={handleInitiateEdit}
         onDelete={handleInitiateDelete}
@@ -118,6 +127,7 @@ export default function CollegePage() {
         onSort={handleSort}
       />
 
+      {/* PAGINATION (Fixed Bottom) */}
       <div className="fixed bottom-0 left-3/4 -translate-x-1/2 w-full max-w-5xl p-4 flex justify-center z-10">
         <PaginationControls
           currentPage={page}
@@ -126,18 +136,19 @@ export default function CollegePage() {
         />
       </div>
 
+      {/* DIALOGS */}
       <DeleteConfirmationDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleConfirmDelete}
-        title={`Delete ${collegeToDelete}?`}
+        title={`Delete ${programToDelete}?`}
       />
 
-      <EditCollegeDialog
+      <EditProgramDialog
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
-        college={collegeToEdit}
-        onCollegeUpdated={fetchColleges}
+        program={programToEdit}
+        onProgramUpdated={fetchPrograms}
       />
 
       <ErrorDialog
