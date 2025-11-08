@@ -1,14 +1,15 @@
 from app.db import get_db_connection
 from psycopg2.extras import DictCursor
+import psycopg2.errors
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
 class Users(UserMixin):
-    def __init__(self, id, username, email, password_hash):
+    def __init__(self, id, username, email, user_password):
         self.id = str(id)
         self.username = username
         self.email = email
-        self.password_hash = password_hash
+        self.user_password = user_password
 
     @classmethod
     def create_user(cls, username, email, password):
@@ -17,15 +18,38 @@ class Users(UserMixin):
         cur = conn.cursor(cursor_factory=DictCursor)
         try:
             cur.execute("""
-                INSERT INTO user_table (username, email, password_hash)
+                INSERT INTO user_table (username, email, user_password)
                 VALUES (%s, %s, %s) RETURNING id
             """, (username, email, hashed_pass))
             new_id = cur.fetchone()['id']
             conn.commit()
-            return new_id
-        except Exception:
+            return {"success": True, "id": new_id}
+        except psycopg2.errors.UniqueViolation as e:
             conn.rollback()
-            return None
+            error_msg = str(e)
+            if 'username' in error_msg:
+                return {"success": False, "error": "Username already taken"}
+            elif 'email' in error_msg:
+                return {"success": False, "error": "Email already in use"}
+            return {"success": False, "error": "Registration failed"}
+        except Exception as e: 
+            print(f"Error creating user: {e}") 
+            conn.rollback()
+            return {"success": False, "error": "An error occurred"}
+        finally:
+            cur.close()
+            conn.close()
+
+    @classmethod
+    def get_all(cls):
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=DictCursor)
+        try:
+            cur.execute("SELECT id, username, email FROM user_table")
+            rows = cur.fetchall()
+            # Convert raw rows to a list of dictionaries
+            users = [dict(row) for row in rows]
+            return users
         finally:
             cur.close()
             conn.close()
@@ -38,7 +62,7 @@ class Users(UserMixin):
         row = cur.fetchone()
         cur.close()
         conn.close()
-        return cls(row['id'], row['username'], row['email'], row['password_hash']) if row else None
+        return cls(row['id'], row['username'], row['email'], row['user_password']) if row else None
 
     @classmethod
     def get_by_id(cls, user_id):
@@ -48,7 +72,7 @@ class Users(UserMixin):
         row = cur.fetchone()
         cur.close()
         conn.close()
-        return cls(row['id'], row['username'], row['email'], row['password_hash']) if row else None
+        return cls(row['id'], row['username'], row['email'], row['user_password']) if row else None
 
     @classmethod
     def update_user(cls, user_id, username, email, password=None):
@@ -58,7 +82,7 @@ class Users(UserMixin):
             if password:
                 hashed_pw = generate_password_hash(password)
                 cur.execute("""
-                    UPDATE user_table SET username=%s, email=%s, password_hash=%s 
+                    UPDATE user_table SET username=%s, email=%s, user_password=%s 
                     WHERE id=%s RETURNING id, username, email
                 """, (username, email, hashed_pw, user_id))
             else:
@@ -79,7 +103,7 @@ class Users(UserMixin):
 
     # Required for login
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        return check_password_hash(self.user_password, password)
     
     def to_dict(self):
         return {"id": self.id, "username": self.username, "email": self.email}

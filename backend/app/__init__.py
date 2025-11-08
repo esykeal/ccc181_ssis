@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from flask_login import LoginManager 
+from flask_session import Session
 from app.models.user_model import Users
 from .config import SECRET_KEY
 
@@ -13,11 +14,32 @@ from app.users.user_controller import user_bp
 
 def create_app():
     app = Flask(__name__)
+    
+    # Validate SECRET_KEY exists
+    if not SECRET_KEY:
+        raise ValueError("SECRET_KEY environment variable is required")
+    
     app.config.from_mapping(SECRET_KEY = SECRET_KEY)
-    CORS(app, supports_credentials=True)
+    app.config.update(
+        SESSION_TYPE='filesystem',
+        SESSION_COOKIE_NAME='session',
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE='Lax',
+        SESSION_COOKIE_SECURE=False,
+        PERMANENT_SESSION_LIFETIME=86400,  # 24 hours in seconds
+        SESSION_REFRESH_EACH_REQUEST=True,
+    )
+    Session(app)
+    CORS(app, 
+         origins=["http://localhost:5173"], 
+         supports_credentials=True,
+         allow_headers=["Content-Type", "Authorization", "Accept"],
+         expose_headers=["Set-Cookie"],
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
     login_manager = LoginManager()
     login_manager.init_app(app)
+    login_manager.session_protection = "strong"
 
     @login_manager.user_loader
     def load_user(user_id):

@@ -17,3 +17,9 @@ def update():
     if updated:
         return jsonify({"success": True, "user": updated})
     return jsonify({"error": "Failed to update"}), 400
+
+@user_bp.route("/", methods=["GET"])
+@login_required
+def get_all_users():
+    users = Users.get_all()
+    return jsonify(users), 200

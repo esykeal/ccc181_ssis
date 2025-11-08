@@ -3,18 +3,53 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.Python
 
 # Virtual environment
 .venv/
 venv/
 ENV/
 
+# Flask sessions (ADD THIS SECTION)
+# Flask filesystem-based sessions
+flask_session/
+instance/flask_session/
+*.session
+session/
+
+# Flask development server
+.pytest_cache/
+.coverage
+htmlcov/
+
 # IDE settings
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # Environment variables
 *.env
+.env.local
+.env.*.local
 
 # Logs
 *.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Flask instance folder (but NOT instance/__init__.py if you have one)
+instance/*
+!instance/__init__.py
+
+# SQLite databases (common in Flask development)
+*.db
+*.sqlite
+*.sqlite3
