@@ -11,6 +11,7 @@ flask-sqlalchemy = "*"
 python-dotenv = "*"
 flask-cors = "*"
 flask-session = "*"
+cloudinary = "*"
 
 [dev-packages]
 
