@@ -36,7 +36,6 @@ export function LoginCard({ className, ...props }: LoginCardProps) {
     try {
       console.log("1. Starting login process...");
 
-      // Optional: First check if we're already logged out
       console.log("2. Logging out any existing session...");
       try {
         await api.post("/auth/logout");
@@ -50,10 +49,8 @@ export function LoginCard({ className, ...props }: LoginCardProps) {
 
       console.log("Cookies available:", document.cookie);
 
-      // Wait a bit for session to be established
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      // Test: Immediately check if session is set
       console.log("4. Testing session with /auth/me...");
       const meResponse = await api.get("/auth/me");
       console.log("Immediate /auth/me check:", meResponse.data);
@@ -63,7 +60,7 @@ export function LoginCard({ className, ...props }: LoginCardProps) {
 
       console.log("6. Login successful, redirecting...");
       toast.success("Login successful");
-      navigate("/"); // Redirect to dashboard/home
+      navigate("/");
     } catch (err: any) {
       console.error("Login error details:", err);
       if (err.response) {

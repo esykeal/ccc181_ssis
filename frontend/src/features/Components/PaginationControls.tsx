@@ -71,14 +71,12 @@ export default function PaginationControls({
           </Button>
         </PaginationItem>
 
-        {/* NUMBERED LINKS */}
         {visiblePages.map((pageNumber, index) => (
           <PaginationItem key={index}>
             {pageNumber === "..." ? (
               <span className="text-sm text-zinc-400 px-2 py-1">...</span>
             ) : (
               <PaginationLink
-                // Use a slightly different variant for the active page
                 isActive={pageNumber === currentPage}
                 onClick={() => onPageChange(pageNumber as number)}
                 className="cursor-pointer"
@@ -89,7 +87,6 @@ export default function PaginationControls({
           </PaginationItem>
         ))}
 
-        {/* NEXT Button */}
         <PaginationItem>
           <Button
             variant="ghost"
@@ -101,13 +98,6 @@ export default function PaginationControls({
             Next
           </Button>
         </PaginationItem>
-
-        {/* Optional: Display Current Page Info (removed for cleaner navigation links) */}
-        {/* <PaginationItem>
-          <span className="text-sm text-muted-foreground px-4">
-            Page {currentPage} of {totalPages}
-          </span>
-        </PaginationItem> */}
       </PaginationContent>
     </Pagination>
   );

@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { AlertTriangle } from "lucide-react";
 
 interface DeleteConfirmationDialogProps {
   open: boolean;
@@ -47,12 +48,13 @@ export default function DeleteConfirmationDialog({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-red-600 flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5" />
             {title}
           </DialogTitle>
           <DialogDescription className="py-2">{description}</DialogDescription>
         </DialogHeader>
 
-        <DialogFooter className="flex gap-2">
+        <DialogFooter className="flex gap-2 sm:justify-end">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
@@ -61,9 +63,9 @@ export default function DeleteConfirmationDialog({
             variant="destructive"
             onClick={onConfirm}
             disabled={countdown > 0}
-            className="w-24 transition-all"
+            className="min-w-[100px]"
           >
-            {countdown > 0 ? `Wait (${countdown})` : "Delete"}
+            {countdown > 0 ? `Wait ${countdown}s` : "Delete"}
           </Button>
         </DialogFooter>
       </DialogContent>

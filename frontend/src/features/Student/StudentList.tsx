@@ -10,6 +10,7 @@ interface StudentListProps {
   sortBy: string;
   sortOrder: "asc" | "desc";
   onSort: (column: string) => void;
+  onRowClick?: (student: Student) => void;
 }
 
 export default function StudentList({
@@ -20,8 +21,8 @@ export default function StudentList({
   sortBy,
   sortOrder,
   onSort,
+  onRowClick,
 }: StudentListProps) {
-  // Helper to render sort arrows
   const getSortIcon = (column: string) => {
     if (sortBy !== column)
       return <ArrowUpDown className="ml-2 h-4 w-4 text-zinc-400" />;
@@ -37,7 +38,6 @@ export default function StudentList({
       <table className="w-full text-left text-sm">
         <thead className="bg-zinc-50 border-b">
           <tr>
-            {/* Sortable: ID */}
             <th className="p-4 font-medium text-zinc-500">
               <button
                 onClick={() => onSort("student_id")}
@@ -48,7 +48,6 @@ export default function StudentList({
               </button>
             </th>
 
-            {/* Sortable: Last Name */}
             <th className="p-4 font-medium text-zinc-500">
               <button
                 onClick={() => onSort("lastname")}
@@ -59,7 +58,6 @@ export default function StudentList({
               </button>
             </th>
 
-            {/* Sortable: Program */}
             <th className="p-4 font-medium text-zinc-500">
               <button
                 onClick={() => onSort("program_code")}
@@ -70,7 +68,6 @@ export default function StudentList({
               </button>
             </th>
 
-            {/* Sortable: Year */}
             <th className="p-4 font-medium text-zinc-500">
               <button
                 onClick={() => onSort("year")}
@@ -81,7 +78,6 @@ export default function StudentList({
               </button>
             </th>
 
-            {/* Sortable: Gender */}
             <th className="p-4 font-medium text-zinc-500">
               <button
                 onClick={() => onSort("gender")}
@@ -118,7 +114,8 @@ export default function StudentList({
             students.map((student) => (
               <tr
                 key={student.id || student.student_id}
-                className="border-b last:border-0 hover:bg-zinc-50"
+                className="border-b last:border-0 hover:bg-zinc-50 cursor-pointer transition-colors"
+                onClick={() => onRowClick && onRowClick(student)}
               >
                 <td className="p-4 font-medium font-mono">
                   {student.student_id}
@@ -133,18 +130,25 @@ export default function StudentList({
                 </td>
                 <td className="p-4">{student.year}</td>
                 <td className="p-4">{student.gender}</td>
+
                 <td className="p-4 text-right space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => onEdit(student)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(student);
+                    }}
                   >
                     Edit
                   </Button>
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => onDelete(student.student_id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(student.student_id);
+                    }}
                   >
                     Delete
                   </Button>

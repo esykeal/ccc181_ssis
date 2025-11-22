@@ -2,7 +2,7 @@ from app.db import get_db_connection
 from psycopg2.extras import DictCursor
 
 class StudentModel:
-    def __init__(self, id, student_id, firstname, lastname, program_code, year, gender):
+    def __init__(self, id, student_id, firstname, lastname, program_code, year, gender, pfp_url):
         self.id = id
         self.student_id = student_id
         self.firstname = firstname
@@ -10,6 +10,7 @@ class StudentModel:
         self.program_code = program_code
         self.year = year
         self.gender = gender
+        self.pfp_url = pfp_url
 
     # --- LIST (Read All) ---
     @classmethod
@@ -17,7 +18,7 @@ class StudentModel:
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("""
-            SELECT id, student_id, firstname, lastname, program_code, year, gender 
+            SELECT id, student_id, firstname, lastname, program_code, year, gender, pfp_url
             FROM student_table
         """)
         rows = cur.fetchall()
@@ -33,7 +34,8 @@ class StudentModel:
                 "lastname": row["lastname"],
                 "program_code": row["program_code"],
                 "year": row["year"],
-                "gender": row["gender"]
+                "gender": row["gender"],
+                "pfp_url": row["pfp_url"]
             })
         return students
 
@@ -43,7 +45,7 @@ class StudentModel:
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("""
-            SELECT id, student_id, firstname, lastname, program_code, year, gender 
+            SELECT id, student_id, firstname, lastname, program_code, year, gender, pfp_url 
             FROM student_table 
             WHERE student_id = %s
         """, (student_id,))
@@ -53,37 +55,43 @@ class StudentModel:
 
         if row:
             return {
-                "id": row["id"],
-                "student_id": row["student_id"],
-                "firstname": row["firstname"],
-                "lastname": row["lastname"],
-                "program_code": row["program_code"],
-                "year": row["year"],
-                "gender": row["gender"]
+               "id": row[0],
+                    "student_id": row[1],
+                    "firstname": row[2],
+                    "lastname": row[3],
+                    "program_code": row[4],
+                    "year": row[5],
+                    "gender": row[6],
+                    "pfp_url": row[7]
             }
         return None
 
     # --- CREATE ---
     @classmethod
-    def add(cls, student_id, firstname, lastname, program_code, year, gender):
+    def add(cls, student_id, firstname, lastname, program_code, year, gender, pfp_url=None):
         conn = get_db_connection()
         cur = conn.cursor()
+        
         try:
             cur.execute("""
-                INSERT INTO student_table (student_id, firstname, lastname, program_code, year, gender) 
-                VALUES (%s, %s, %s, %s, %s, %s) 
-                RETURNING id, student_id, firstname, lastname, program_code, year, gender
-            """, (student_id, firstname, lastname, program_code, year, gender))
-            new_row = cur.fetchone()
+                INSERT INTO student_table 
+                (student_id, firstname, lastname, program_code, year, gender, pfp_url)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING id, student_id, firstname, lastname, program_code, year, gender, pfp_url
+            """, (student_id, firstname, lastname, program_code, year, gender, pfp_url))
+            
+            row = cur.fetchone()
             conn.commit()
+            
             return {
-                "id": new_row["id"],
-                "student_id": new_row["student_id"],
-                "firstname": new_row["firstname"],
-                "lastname": new_row["lastname"],
-                "program_code": new_row["program_code"],
-                "year": new_row["year"],
-                "gender": new_row["gender"]
+                "id": row[0],
+                "student_id": row[1],
+                "firstname": row[2],
+                "lastname": row[3],
+                "program_code": row[4],
+                "year": row[5],
+                "gender": row[6],
+                "pfp_url": row[7]
             }
         except Exception as e:
             conn.rollback()
@@ -94,31 +102,40 @@ class StudentModel:
 
     # --- UPDATE ---
     @classmethod
-    def update(cls, original_student_id, new_student_id, firstname, lastname, program_code, year, gender):
+    def update(cls, original_student_id, new_student_id, firstname, lastname, program_code, year, gender, pfp_url):
         conn = get_db_connection()
         cur = conn.cursor()
+        
         try:
             cur.execute("""
                 UPDATE student_table 
-                SET student_id=%s, firstname=%s, lastname=%s, program_code=%s, year=%s, gender=%s
-                WHERE student_id = %s 
-                RETURNING id, student_id, firstname, lastname, program_code, year, gender
-            """, (new_student_id, firstname, lastname, program_code, year, gender, original_student_id))
+                SET student_id = %s,
+                    firstname = %s,
+                    lastname = %s,
+                    program_code = %s,
+                    year = %s,
+                    gender = %s,
+                    pfp_url = %s
+                WHERE student_id = %s
+                RETURNING id, student_id, firstname, lastname, program_code, year, gender, pfp_url
+            """, (new_student_id, firstname, lastname, program_code, year, gender, pfp_url, original_student_id))
             
-            updated_row = cur.fetchone()
+            row = cur.fetchone()
             conn.commit()
             
-            if updated_row:
+            if row:
                 return {
-                "id": updated_row["id"],
-                "student_id": updated_row["student_id"],
-                "firstname": updated_row["firstname"],
-                "lastname": updated_row["lastname"],
-                "program_code": updated_row["program_code"],
-                "year": updated_row["year"],
-                "gender": updated_row["gender"]
+                    "id": row[0],
+                    "student_id": row[1],
+                    "firstname": row[2],
+                    "lastname": row[3],
+                    "program_code": row[4],
+                    "year": row[5],
+                    "gender": row[6],
+                    "pfp_url": row[7]
                 }
             return None
+            
         except Exception as e:
             conn.rollback()
             raise e
@@ -162,7 +179,6 @@ class StudentModel:
     def by_pagination(cls, page: int, limit: int, sort_by: str = None, sort_order: str = 'ASC', search: str = ''):
         offset = (page - 1) * limit
 
-        # 1. Allowlist
         allowed_columns = {'student_id', 'firstname', 'lastname', 'program_code', 'year', 'gender'}
         if not sort_by or sort_by not in allowed_columns:
             sort_by = 'student_id'
@@ -177,7 +193,7 @@ class StudentModel:
 
         try:
             base_query = """
-                SELECT id, student_id, firstname, lastname, program_code, year, gender
+                SELECT id, student_id, firstname, lastname, program_code, year, gender, pfp_url
                 FROM student_table
             """
             count_query = "SELECT COUNT(*) AS total_count FROM student_table"
@@ -197,14 +213,12 @@ class StudentModel:
                 count_query += where_clause
                 params.extend([search_term] * 5) 
 
-            # 3. Sort & Paginate
             base_query += f" ORDER BY {sort_by} {sort_order} LIMIT %s OFFSET %s"
             params.extend([limit, offset])
 
             cur.execute(base_query, tuple(params))
             rows = cur.fetchall()
 
-            # 4. Count Total
             count_params = [search_term] * 5 if search else []
             cur.execute(count_query, tuple(count_params))
             total_row = cur.fetchone()
@@ -219,7 +233,8 @@ class StudentModel:
                     "lastname": row["lastname"],
                     "program_code": row["program_code"],
                     "year": row["year"],
-                    "gender": row["gender"]
+                    "gender": row["gender"],
+                    "pfp_url": row["pfp_url"] 
                 }) 
 
             return {
@@ -229,6 +244,10 @@ class StudentModel:
                 "total": total
             }
         
+        except Exception as e:
+            print(f"Pagination Error: {e}")
+            return {"data": [], "page": page, "limit": limit, "total": 0}
+
         finally:
             cur.close()
             conn.close()

@@ -10,22 +10,18 @@ import ErrorDialog from "@/features/Components/ErrorDialog";
 import ProgramSearchBar from "@/features/Programs/ProgramSearchBar";
 
 export default function ProgramPage() {
-  // --- 1. STATE (The Brain) ---
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Pagination
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit] = useState(10);
 
-  // Sorting & Search
   const [sortBy, setSortBy] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Dialog States
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [programToDelete, setProgramToDelete] = useState<string | null>(null);
 
@@ -35,7 +31,6 @@ export default function ProgramPage() {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // --- 2. API ACTIONS ---
   const fetchPrograms = async () => {
     setLoading(true);
     setError("");
@@ -58,13 +53,11 @@ export default function ProgramPage() {
     }
   };
 
-  // Trigger fetch when these change
   useEffect(() => {
-    if (searchQuery) setPage(1); // Reset to page 1 on new search
+    if (searchQuery) setPage(1);
     fetchPrograms();
   }, [page, sortBy, sortOrder, searchQuery]);
 
-  // --- 3. EVENT HANDLERS ---
   const handleSort = (column: string) => {
     if (sortBy === column) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -101,7 +94,6 @@ export default function ProgramPage() {
 
   return (
     <div className="p-8 max-w-5xl mx-auto flex flex-col gap-4 pb-18">
-      {/* HEADER & ADD BUTTON */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Programs</h1>
@@ -111,12 +103,10 @@ export default function ProgramPage() {
         <AddProgramDialog onProgramAdded={fetchPrograms} />
       </div>
 
-      {/* SEARCH BAR */}
       <div className="flex justify-between items-center bg-zinc-50 p-2">
         <ProgramSearchBar onSearch={setSearchQuery} />
       </div>
 
-      {/* TABLE (Pure UI) */}
       <ProgramList
         programs={programs}
         loading={loading}
@@ -127,7 +117,6 @@ export default function ProgramPage() {
         onSort={handleSort}
       />
 
-      {/* PAGINATION (Fixed Bottom) */}
       <div className="fixed bottom-0 left-3/4 -translate-x-1/2 w-full max-w-5xl p-4 flex justify-center z-10">
         <PaginationControls
           currentPage={page}
@@ -136,7 +125,6 @@ export default function ProgramPage() {
         />
       </div>
 
-      {/* DIALOGS */}
       <DeleteConfirmationDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}

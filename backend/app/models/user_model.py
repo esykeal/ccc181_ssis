@@ -100,10 +100,38 @@ class Users(UserMixin):
         finally:
             cur.close()
             conn.close()
+    
+    @classmethod
+    def update_avatar(cls, user_id, image_url):
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=DictCursor)
+        try:
+            # We use 'pfp_url' here to match your new schema
+            cur.execute("""
+                UPDATE user_table 
+                SET pfp_url = %s 
+                WHERE id = %s
+                RETURNING pfp_url
+            """, (image_url, user_id))
+            
+            updated_row = cur.fetchone()
+            conn.commit()
+            return updated_row['pfp_url'] if updated_row else None
+        except Exception as e:
+            print(f"Error updating avatar: {e}")
+            conn.rollback()
+            return None
+        finally:
+            cur.close()
+            conn.close()
 
-    # Required for login
     def check_password(self, password):
         return check_password_hash(self.user_password, password)
     
     def to_dict(self):
-        return {"id": self.id, "username": self.username, "email": self.email}
+        return {
+            "id": self.id, 
+            "username": self.username, 
+            "email": self.email,
+            "pfp_url": self.pfp_url if hasattr(self, 'pfp_url') else None
+        }

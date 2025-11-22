@@ -3,14 +3,15 @@ import axios from "axios";
 const api = axios.create({
   baseURL: "/api",
   withCredentials: true, // This is CRITICAL
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 // Add request interceptor to debug
 api.interceptors.request.use(
   (config) => {
+    // Only set Content-Type to JSON if we're not sending FormData
+    if (!(config.data instanceof FormData)) {
+      config.headers["Content-Type"] = "application/json";
+    }
     console.log("Request:", config.method?.toUpperCase(), config.url);
     return config;
   },

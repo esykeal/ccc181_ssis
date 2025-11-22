@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import programApi from "@/api/programApi"; //
-import collegeApi from "@/api/collegeApi"; //
-import type { College } from "@/types"; //
+import programApi from "@/api/programApi";
+import collegeApi from "@/api/collegeApi";
+import type { College } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,10 +40,9 @@ export default function AddProgramDialog({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // FIX: Use the centralized collegeApi to fetch the list
     collegeApi
-      .fetchAll(1, 100) // Fetch enough colleges for the dropdown
-      .then((data) => setColleges(data.data || [])) // Handle the paginated response structure
+      .fetchAll(1, 100)
+      .then((data) => setColleges(data.data || []))
       .catch((err) =>
         console.error("Failed to load colleges for dropdown", err)
       );
@@ -55,7 +54,6 @@ export default function AddProgramDialog({
     setError("");
 
     try {
-      // FIX: Use the centralized programApi
       await programApi.create(code, name, selectedCollege);
 
       setOpen(false);

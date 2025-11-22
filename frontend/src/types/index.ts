@@ -19,4 +19,5 @@ export interface Student {
   program_code: string;
   year: number;
   gender: string;
+  pfp_url?: string;
 }

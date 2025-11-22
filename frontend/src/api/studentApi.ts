@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import type { Student } from "@/types"; //
+import type { Student } from "@/types";
 
 interface FetchStudentsResponse {
   data: Student[];
@@ -7,7 +7,6 @@ interface FetchStudentsResponse {
 }
 
 const studentApi = {
-  // 1. FETCH ALL (With Pagination, Sort, Search)
   fetchAll: async (
     page: number,
     limit: number,
@@ -15,7 +14,6 @@ const studentApi = {
     sortOrder: "asc" | "desc" = "asc",
     search: string = ""
   ) => {
-    // Note: The controller prefix is '/student', not '/students'
     const response = await api.get<FetchStudentsResponse>("/student/", {
       params: {
         page,
@@ -28,32 +26,35 @@ const studentApi = {
     return response.data;
   },
 
-  // 2. GET ONE (By ID)
   getById: async (id: string) => {
     const response = await api.get<Student>(`/student/${id}`);
     return response.data;
   },
 
-  // 3. CREATE
   create: async (
     id: string,
     firstname: string,
     lastname: string,
     programCode: string,
     year: number,
-    gender: string
+    gender: string,
+    file: File | null
   ) => {
-    return api.post("/student/", {
-      student_id: id,
-      firstname,
-      lastname,
-      program_code: programCode,
-      year,
-      gender,
-    });
+    const formData = new FormData();
+    formData.append("student_id", id);
+    formData.append("firstname", firstname);
+    formData.append("lastname", lastname);
+    formData.append("program_code", programCode);
+    formData.append("year", year.toString());
+    formData.append("gender", gender);
+
+    if (file) {
+      formData.append("avatar", file);
+    }
+
+    return api.post("/student/", formData);
   },
 
-  // 4. UPDATE
   update: async (
     originalId: string,
     newId: string,
@@ -61,19 +62,24 @@ const studentApi = {
     lastname: string,
     programCode: string,
     year: number,
-    gender: string
+    gender: string,
+    file: File | null
   ) => {
-    return api.put(`/student/${originalId}`, {
-      student_id: newId,
-      firstname,
-      lastname,
-      program_code: programCode,
-      year,
-      gender,
-    });
+    const formData = new FormData();
+    formData.append("student_id", newId);
+    formData.append("firstname", firstname);
+    formData.append("lastname", lastname);
+    formData.append("program_code", programCode);
+    formData.append("year", year.toString());
+    formData.append("gender", gender);
+
+    if (file) {
+      formData.append("avatar", file);
+    }
+
+    return api.put(`/student/${originalId}`, formData);
   },
 
-  // 5. DELETE
   delete: async (id: string) => {
     return api.delete(`/student/${id}`);
   },

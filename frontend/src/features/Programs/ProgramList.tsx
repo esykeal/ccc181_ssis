@@ -1,8 +1,7 @@
-import type { Program } from "@/types"; //
+import type { Program } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 
-// Define what props this component needs
 interface ProgramListProps {
   programs: Program[];
   loading: boolean;

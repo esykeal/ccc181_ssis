@@ -8,24 +8,25 @@ import DeleteConfirmationDialog from "@/features/Student/StudentDeleteConfirmati
 import EditStudentDialog from "@/features/Student/StudentEditDialog";
 import ErrorDialog from "@/features/Components/ErrorDialog";
 import StudentSearchBar from "@/features/Student/StudentSeachBar";
+import { StudenCardDetails } from "@/features/Student/StudentCard";
+
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export default function StudentPage() {
-  // --- 1. STATE (The Brain) ---
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Pagination
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit] = useState(10);
 
-  // Sorting & Search
-  const [sortBy, setSortBy] = useState(""); // Default to "natural" order
+  const [sortBy, setSortBy] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Dialog States
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
 
@@ -35,7 +36,6 @@ export default function StudentPage() {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // --- 2. API ACTIONS ---
   const fetchStudents = async () => {
     setLoading(true);
     setError("");
@@ -58,13 +58,11 @@ export default function StudentPage() {
     }
   };
 
-  // Trigger fetch when these change
   useEffect(() => {
-    if (searchQuery) setPage(1); // Reset to page 1 on new search
+    if (searchQuery) setPage(1);
     fetchStudents();
   }, [page, sortBy, sortOrder, searchQuery]);
 
-  // --- 3. EVENT HANDLERS ---
   const handleSort = (column: string) => {
     if (sortBy === column) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -72,6 +70,10 @@ export default function StudentPage() {
       setSortBy(column);
       setSortOrder("asc");
     }
+  };
+
+  const handleRowClick = (student: Student) => {
+    setSelectedStudent(student);
   };
 
   const handleInitiateDelete = (id: string) => {
@@ -84,6 +86,14 @@ export default function StudentPage() {
     try {
       await studentApi.delete(studentToDelete);
       setDeleteDialogOpen(false);
+
+      if (
+        selectedStudent &&
+        String(selectedStudent.student_id) === String(studentToDelete)
+      ) {
+        setSelectedStudent(null);
+      }
+
       setStudentToDelete(null);
       fetchStudents();
     } catch (err: any) {
@@ -100,8 +110,7 @@ export default function StudentPage() {
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto flex flex-col gap-4 pb-18">
-      {/* HEADER & ADD BUTTON */}
+    <div className="p-8 max-w-7xl mx-auto flex flex-col gap-6 pb-18">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Students</h1>
@@ -111,32 +120,51 @@ export default function StudentPage() {
         <AddStudentDialog onStudentAdded={fetchStudents} />
       </div>
 
-      {/* SEARCH BAR */}
-      <div className="flex justify-between items-center bg-zinc-50 p-2">
+      <div className="flex justify-between items-center bg-zinc-50 p-2 rounded-md border">
         <StudentSearchBar onSearch={setSearchQuery} />
       </div>
 
-      {/* TABLE (Pure UI) */}
-      <StudentList
-        students={students}
-        loading={loading}
-        onEdit={handleInitiateEdit}
-        onDelete={handleInitiateDelete}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        onSort={handleSort}
-      />
-
-      {/* PAGINATION (Fixed Bottom) */}
-      <div className="fixed bottom-0 left-3/4 -translate-x-1/2 w-full max-w-5xl p-4 flex justify-center z-10">
-        <PaginationControls
-          currentPage={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
+      <div className="space-y-4">
+        <StudentList
+          students={students}
+          loading={loading}
+          onEdit={handleInitiateEdit}
+          onDelete={handleInitiateDelete}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={handleSort}
+          onRowClick={handleRowClick}
         />
+
+        <div className="flex justify-center pt-4">
+          <PaginationControls
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
+        </div>
       </div>
 
-      {/* DIALOGS */}
+      <Dialog
+        open={!!selectedStudent}
+        onOpenChange={(open) => {
+          if (!open) setSelectedStudent(null);
+        }}
+      >
+        <DialogContent className="p-0 border-none bg-transparent shadow-none max-w-md w-full [&>button]:hidden">
+          <StudenCardDetails
+            student={selectedStudent}
+            onClose={() => setSelectedStudent(null)}
+            onEdit={(student) => {
+              handleInitiateEdit(student);
+            }}
+            onDelete={(id) => {
+              handleInitiateDelete(id);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
       <DeleteConfirmationDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
@@ -148,7 +176,10 @@ export default function StudentPage() {
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         student={studentToEdit}
-        onStudentUpdated={fetchStudents}
+        onStudentUpdated={() => {
+          fetchStudents();
+          setSelectedStudent(null);
+        }}
       />
 
       <ErrorDialog

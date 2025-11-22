@@ -28,7 +28,6 @@ export default function AddCollegeDialog({
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  // 1. HANDLER FOR CODE (No spaces, No numbers)
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setCode(val);
@@ -40,7 +39,6 @@ export default function AddCollegeDialog({
     }
   };
 
-  // 2. HANDLER FOR NAME (No numbers)
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setName(val);

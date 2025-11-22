@@ -11,13 +11,12 @@ export default function ProgramSearchBar({ onSearch }: ProgramSearchBarProps) {
   const [query, setQuery] = useState("");
 
   const handleSearch = () => {
-    // Only trigger the search in the Parent when button is clicked
     onSearch(query);
   };
 
   const handleClear = () => {
     setQuery("");
-    onSearch(""); // Reset the list to show all
+    onSearch("");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

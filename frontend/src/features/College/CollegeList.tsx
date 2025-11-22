@@ -1,4 +1,3 @@
-//
 import type { College } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";

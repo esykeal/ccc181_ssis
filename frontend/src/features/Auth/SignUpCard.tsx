@@ -36,7 +36,7 @@ export function SignUpCard({ className, ...props }: SignUpCardProps) {
     try {
       await api.post("/auth/signup", { username, email, password });
       toast.success("Account created successfully");
-      navigate("/login"); // Redirect to login page
+      navigate("/login");
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.error || "Failed to create account");
