@@ -2,13 +2,11 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: "/api",
-  withCredentials: true, // This is CRITICAL
+  withCredentials: true, 
 });
 
-// Add request interceptor to debug
 api.interceptors.request.use(
   (config) => {
-    // Only set Content-Type to JSON if we're not sending FormData
     if (!(config.data instanceof FormData)) {
       config.headers["Content-Type"] = "application/json";
     }
@@ -21,7 +19,7 @@ api.interceptors.request.use(
   }
 );
 
-// Add response interceptor to debug
+
 api.interceptors.response.use(
   (response) => {
     console.log("Response:", response.status, response.config.url);
