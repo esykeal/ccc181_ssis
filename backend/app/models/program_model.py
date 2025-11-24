@@ -61,7 +61,7 @@ class ProgramModel:
         cur.execute("""
             SELECT id, program_code, program_name, college_code 
             FROM program_table 
-            WHERE program_name = %s
+            WHERE LOWER(TRIM(program_name)) = LOWER(TRIM(%s))
         """, (program_name,))
         row = cur.fetchone()
         cur.close()

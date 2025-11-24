@@ -50,15 +50,24 @@ class CollegeModel:
     def get_by_name(cls, college_name):
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=DictCursor)
-        cur.execute("SELECT id, college_code, college_name FROM college_table WHERE college_name = %s", (college_name,))
+
+        cur.execute(
+            """
+            SELECT id, college_code, college_name
+            FROM college_table
+            WHERE LOWER(TRIM(college_name)) = LOWER(TRIM(%s))
+            """,
+            (college_name,)
+        )
         row = cur.fetchone()
+
         cur.close()
         conn.close()
 
         if row:
             return {
-                "id": row["id"], 
-                "college_code": row["college_code"], 
+                "id": row["id"],
+                "college_code": row["college_code"],
                 "college_name": row["college_name"]
             }
         return None

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { Student } from "@/types";
 import studentApi from "@/api/studentApi";
 import StudentList from "@/features/Student/StudentList";
@@ -12,6 +12,14 @@ import { StudenCardDetails } from "@/features/Student/StudentCard";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
+interface StudentQueryParams {
+  page: number;
+  limit: number;
+  sortBy: string;
+  sortOrder: "asc" | "desc";
+  searchQuery: string;
+}
+
 export default function StudentPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,13 +27,15 @@ export default function StudentPage() {
 
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [limit] = useState(10);
+  const [queryParams, setQueryParams] = useState<StudentQueryParams>({
+    page: 1,
+    limit: 10,
+    sortBy: "",
+    sortOrder: "asc",
+    searchQuery: "",
+  });
 
-  const [sortBy, setSortBy] = useState("");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [totalPages, setTotalPages] = useState(1);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
@@ -36,40 +46,65 @@ export default function StudentPage() {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
       const response = await studentApi.fetchAll(
-        page,
-        limit,
-        sortBy,
-        sortOrder,
-        searchQuery
+        queryParams.page,
+        queryParams.limit,
+        queryParams.sortBy,
+        queryParams.sortOrder,
+        queryParams.searchQuery
       );
       setStudents(response.data || []);
       const totalRecords = response.total || 0;
-      setTotalPages(Math.ceil(totalRecords / limit));
+      setTotalPages(Math.ceil(totalRecords / queryParams.limit));
     } catch (err) {
       console.error("API Error:", err);
       setError("Failed to load students.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [queryParams]);
 
   useEffect(() => {
-    if (searchQuery) setPage(1);
     fetchStudents();
-  }, [page, sortBy, sortOrder, searchQuery]);
+  }, [fetchStudents]);
+
+  const handleSearch = (query: string) => {
+    setQueryParams((prev) => ({
+      ...prev,
+      searchQuery: query,
+      page: 1,
+    }));
+  };
 
   const handleSort = (column: string) => {
-    if (sortBy === column) {
-      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortBy(column);
-      setSortOrder("asc");
-    }
+    setQueryParams((prev) => {
+      if (prev.sortBy === column) {
+        return {
+          ...prev,
+          sortBy: column,
+          sortOrder: prev.sortOrder === "asc" ? "desc" : "asc",
+          page: 1,
+        };
+      } else {
+        return {
+          ...prev,
+          sortBy: column,
+          sortOrder: "asc",
+          page: 1,
+        };
+      }
+    });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setQueryParams((prev) => ({
+      ...prev,
+      page: newPage,
+    }));
   };
 
   const handleRowClick = (student: Student) => {
@@ -121,7 +156,7 @@ export default function StudentPage() {
       </div>
 
       <div className="flex justify-between items-center bg-zinc-50 p-2">
-        <StudentSearchBar onSearch={setSearchQuery} />
+        <StudentSearchBar onSearch={handleSearch} />
       </div>
 
       <div className="space-y-4">
@@ -130,17 +165,17 @@ export default function StudentPage() {
           loading={loading}
           onEdit={handleInitiateEdit}
           onDelete={handleInitiateDelete}
-          sortBy={sortBy}
-          sortOrder={sortOrder}
+          sortBy={queryParams.sortBy}
+          sortOrder={queryParams.sortOrder}
           onSort={handleSort}
           onRowClick={handleRowClick}
         />
 
         <div className="fixed bottom-0 left-3/4 -translate-x-1/2 w-full max-w-5xl p-4 flex justify-center z-10">
           <PaginationControls
-            currentPage={page}
+            currentPage={queryParams.page}
             totalPages={totalPages}
-            onPageChange={setPage}
+            onPageChange={handlePageChange}
           />
         </div>
       </div>

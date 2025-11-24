@@ -1,4 +1,3 @@
-#
 from flask import Blueprint, jsonify, request
 from app.models.program_model import ProgramModel
 from app.models.college_model import CollegeModel
@@ -45,22 +44,35 @@ def add_program():
     
     if not data or 'program_code' not in data or 'program_name' not in data or 'college_code' not in data:
         return jsonify({"error": "Missing required fields"}), 400
+
+    program_code = data['program_code'].strip()
+    program_name = data['program_name'].strip()
+    college_code = data['college_code'].strip()
         
-    if not CollegeModel.get_by_code(data['college_code']):
+    if not CollegeModel.get_by_code(college_code):
         return jsonify({"error": "College code does not exist"}), 400
+
+    existing_code = ProgramModel.get_by_code(program_code)
+    existing_name = ProgramModel.get_by_name(program_name)
+
+    if existing_code and existing_name:
+        return jsonify({"error": "Program already exists"}), 409
+
+    if existing_code:
+         return jsonify({"error": "Program code already exists"}), 409
+
+    if existing_name:
+         return jsonify({"error": "Program name already exists"}), 409
 
     try:
         new_program = ProgramModel.add(
-            data['program_code'], 
-            data['program_name'], 
-            data['college_code']
+            program_code, 
+            program_name, 
+            college_code
         )
         return jsonify(new_program), 201
     except Exception as e:
-        error_msg = str(e)
-        if "duplicate key value" in error_msg:
-             return jsonify({"error": "Program code already exists"}), 409
-        return jsonify({"error": error_msg}), 500
+        return jsonify({"error": str(e)}), 500
 
 @program_bp.route('/<string:code>', methods=['PUT'])
 def update_program(code):
@@ -102,9 +114,9 @@ def delete_program(code):
         return jsonify({"error": "Program not found"}), 404
         
     except Exception as e:
-        error_msg = str(e)
-        if "violates foreign key constraint" in error_msg:
+        if "foreign key constraint" in str(e):
              return jsonify({
-                 "error": "Cannot delete program. It has enrolled students."
+                 "error": "Unable to delete program because there are students enrolled in it."
              }), 400
-        return jsonify({"error": error_msg}), 500
+        
+        return jsonify({"error": str(e)}), 500

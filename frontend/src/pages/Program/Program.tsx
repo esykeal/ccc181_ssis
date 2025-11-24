@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { Program } from "@/types";
 import programApi from "@/api/programApi";
 import ProgramList from "@/features/Programs/ProgramList";
@@ -9,18 +9,28 @@ import EditProgramDialog from "@/features/Programs/ProgramEditDialog";
 import ErrorDialog from "@/features/Components/ErrorDialog";
 import ProgramSearchBar from "@/features/Programs/ProgramSearchBar";
 
+interface ProgramQueryParams {
+  page: number;
+  limit: number;
+  sortBy: string;
+  sortOrder: "asc" | "desc";
+  searchQuery: string;
+}
+
 export default function ProgramPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [limit] = useState(10);
+  const [queryParams, setQueryParams] = useState<ProgramQueryParams>({
+    page: 1,
+    limit: 10,
+    sortBy: "",
+    sortOrder: "asc",
+    searchQuery: "",
+  });
 
-  const [sortBy, setSortBy] = useState("");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [totalPages, setTotalPages] = useState(1);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [programToDelete, setProgramToDelete] = useState<string | null>(null);
@@ -31,19 +41,19 @@ export default function ProgramPage() {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const fetchPrograms = async () => {
+  const fetchPrograms = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
       const response = await programApi.fetchAll(
-        page,
-        limit,
-        sortBy,
-        sortOrder,
-        searchQuery
+        queryParams.page,
+        queryParams.limit,
+        queryParams.sortBy,
+        queryParams.sortOrder,
+        queryParams.searchQuery
       );
 
-      console.log("Program API Response:", response); // Debug log
+      console.log("Program API Response:", response);
 
       let dataList: Program[] = [];
       let total = 0;
@@ -57,7 +67,7 @@ export default function ProgramPage() {
       }
 
       setPrograms(dataList);
-      setTotalPages(Math.ceil(total / limit) || 1);
+      setTotalPages(Math.ceil(total / queryParams.limit) || 1);
     } catch (err) {
       console.error("API Error:", err);
       setError("Failed to load programs.");
@@ -65,20 +75,45 @@ export default function ProgramPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [queryParams]);
 
   useEffect(() => {
-    if (searchQuery) setPage(1);
     fetchPrograms();
-  }, [page, sortBy, sortOrder, searchQuery]);
+  }, [fetchPrograms]);
+
+  const handleSearch = (query: string) => {
+    setQueryParams((prev) => ({
+      ...prev,
+      searchQuery: query,
+      page: 1,
+    }));
+  };
 
   const handleSort = (column: string) => {
-    if (sortBy === column) {
-      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortBy(column);
-      setSortOrder("asc");
-    }
+    setQueryParams((prev) => {
+      if (prev.sortBy === column) {
+        return {
+          ...prev,
+          sortBy: column,
+          sortOrder: prev.sortOrder === "asc" ? "desc" : "asc",
+          page: 1,
+        };
+      } else {
+        return {
+          ...prev,
+          sortBy: column,
+          sortOrder: "asc",
+          page: 1,
+        };
+      }
+    });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setQueryParams((prev) => ({
+      ...prev,
+      page: newPage,
+    }));
   };
 
   const handleInitiateDelete = (code: string) => {
@@ -118,7 +153,7 @@ export default function ProgramPage() {
       </div>
 
       <div className="flex justify-between items-center bg-zinc-50 p-2">
-        <ProgramSearchBar onSearch={setSearchQuery} />
+        <ProgramSearchBar onSearch={handleSearch} />
       </div>
 
       <ProgramList
@@ -126,16 +161,16 @@ export default function ProgramPage() {
         loading={loading}
         onEdit={handleInitiateEdit}
         onDelete={handleInitiateDelete}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
+        sortBy={queryParams.sortBy}
+        sortOrder={queryParams.sortOrder}
         onSort={handleSort}
       />
 
       <div className="fixed bottom-0 left-3/4 -translate-x-1/2 w-full max-w-5xl p-4 flex justify-center z-10">
         <PaginationControls
-          currentPage={page}
+          currentPage={queryParams.page}
           totalPages={totalPages}
-          onPageChange={setPage}
+          onPageChange={handlePageChange}
         />
       </div>
 

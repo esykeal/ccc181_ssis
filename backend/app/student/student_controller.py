@@ -22,8 +22,6 @@ def get_students():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-    return jsonify(StudentModel.get_all())
-
 def get_paginated_student_handler(page, limit, sort_by, sort_order, search):
     try:
         page = max(1, page)
@@ -32,7 +30,7 @@ def get_paginated_student_handler(page, limit, sort_by, sort_order, search):
         pagination_data = StudentModel.by_pagination(page, limit, sort_by, sort_order, search)
         return jsonify(pagination_data), 200
     except Exception as e:
-        print(f"Error fetching paginated programs: {e}")
+        print(f"Error fetching paginated students: {e}")
         return jsonify({"error": str(e)}), 500
 
 @student_bp.route('/<string:student_id>', methods=['GET'])
@@ -45,17 +43,14 @@ def get_student(student_id):
 @student_bp.route('/', methods=['POST'])
 def add_student():
     data = request.form
-    
     file = request.files.get('avatar')
-
-    print(f"DEBUG RECEIVING -> Form: {data} | File: {file}")
 
     if not data.get('student_id') or not data.get('firstname') or not data.get('lastname'):
         return jsonify({"error": "Missing required fields"}), 400
 
     if StudentModel.get_by_id(data.get('student_id')):
         return jsonify({"error": "Student ID already exists"}), 409
-        
+
     if not ProgramModel.get_by_code(data.get('program_code')):
          return jsonify({"error": "Program code does not exist"}), 400
 
@@ -64,9 +59,9 @@ def add_student():
         try:
             print(f"Uploading file: {file.filename}") 
             pfp_url = upload_image(file) 
-            print(f"Cloudinary URL generated: {pfp_url}")
         except Exception as e:
             print(f"Upload failed: {e}")
+
     try:
         new_student = StudentModel.add(
             data['student_id'],
@@ -90,11 +85,15 @@ def update_student(student_id):
     current_student = StudentModel.get_by_id(student_id)
     if not current_student:
         return jsonify({"error": "Student not found"}), 404
-    
+
+    new_id = data.get('student_id', current_student['student_id'])
+    if new_id != current_student['student_id'] and StudentModel.get_by_id(new_id):
+        return jsonify({"error": f"Student ID '{new_id}' already exists"}), 409
+
     if 'program_code' in data:
-         from app.models.program_model import ProgramModel 
-         if not ProgramModel.get_by_code(data['program_code']):
-             return jsonify({"error": "New program code does not exist"}), 400
+         new_program = data['program_code']
+         if not ProgramModel.get_by_code(new_program):
+             return jsonify({"error": f"Program code '{new_program}' does not exist"}), 400
 
     pfp_url = current_student.get('pfp_url') 
     

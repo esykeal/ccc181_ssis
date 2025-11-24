@@ -68,9 +68,13 @@ export default function CollegePage() {
   };
 
   useEffect(() => {
-    if (searchQuery) setPage(1);
     fetchColleges();
   }, [page, sortBy, sortOrder, searchQuery]);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setPage(1);
+  };
 
   const handleSort = (column: string) => {
     if (sortBy === column) {
@@ -118,7 +122,7 @@ export default function CollegePage() {
       </div>
 
       <div className="flex justify-between items-center bg-zinc-50 p-2">
-        <CollegeSearchBar onSearch={setSearchQuery} />
+        <CollegeSearchBar onSearch={handleSearch} />
       </div>
 
       <CollegeList
