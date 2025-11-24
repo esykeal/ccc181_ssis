@@ -78,9 +78,7 @@ export function LoginCard({ className, ...props }: LoginCardProps) {
     <Card className={cn("w-full max-w-sm", className)} {...props}>
       <CardHeader>
         <CardTitle className="text-2xl">Login</CardTitle>
-        <CardDescription>
-          Enter your username below to login to your account
-        </CardDescription>
+        <CardDescription>Enter your account details to login</CardDescription>
       </CardHeader>
 
       <form onSubmit={handleLogin}>
