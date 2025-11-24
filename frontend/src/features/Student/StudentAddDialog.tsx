@@ -88,6 +88,10 @@ export default function AddStudentDialog({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!file.type.startsWith("image/")) {
+        setError("File is not an image. Please select a valid image file.");
+        return;
+      }
       if (file.size > 5 * 1024 * 1024) {
         setError("File is too large. Please select an image under 5MB.");
         return;
