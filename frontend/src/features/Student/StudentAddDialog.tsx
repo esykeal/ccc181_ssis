@@ -72,8 +72,20 @@ export default function AddStudentDialog({
     };
   }, [previewUrl]);
 
+  const handleIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\D/g, "");
+
+    const truncated = rawValue.slice(0, 8);
+
+    let formatted = truncated;
+    if (truncated.length > 4) {
+      formatted = `${truncated.slice(0, 4)}-${truncated.slice(4)}`;
+    }
+
+    setStudentId(formatted);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("File Picker Opened and Changed!");
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
@@ -104,8 +116,6 @@ export default function AddStudentDialog({
     setError("");
 
     try {
-      console.log("Submitting with file:", selectedFile);
-
       await studentApi.create(
         studentId,
         firstName,
@@ -185,8 +195,9 @@ export default function AddStudentDialog({
               <Input
                 id="sid"
                 value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
+                onChange={handleIdChange}
                 placeholder="YYYY-NNNN"
+                maxLength={9}
                 required
               />
             </div>
