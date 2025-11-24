@@ -222,7 +222,11 @@ export default function AddStudentDialog({
                 <SelectTrigger>
                   <SelectValue placeholder="Select program..." />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent
+                  className="max-h-[240px] overflow-y-auto"
+                  position="popper"
+                  sideOffset={4}
+                >
                   {programs.map((prog: any) => (
                     <SelectItem
                       key={prog.program_code || prog.code}

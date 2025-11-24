@@ -7,7 +7,6 @@ class CollegeModel:
         self.college_code = college_code
         self.college_name = college_name
 
-    # --- LIST (Read All) ---
     @classmethod
     def get_all(cls):
         conn = get_db_connection()
@@ -28,7 +27,6 @@ class CollegeModel:
             })
         return colleges
     
-    # --- READ (Get one by code) ---
     @classmethod
     def get_by_code(cls, code):
         conn = get_db_connection()
@@ -65,7 +63,6 @@ class CollegeModel:
             }
         return None
 
-    # --- CREATE ---
     @classmethod
     def add(cls, code, name):
         conn = get_db_connection()
@@ -91,7 +88,6 @@ class CollegeModel:
             cur.close()
             conn.close()
 
-    # --- UPDATE ---
     @classmethod
     def update(cls, original_code, new_code, new_name):
         conn = get_db_connection()
@@ -123,7 +119,6 @@ class CollegeModel:
             cur.close()
             conn.close()
 
-    # --- DELETE ---
     @classmethod
     def delete(cls, code):
         conn = get_db_connection()

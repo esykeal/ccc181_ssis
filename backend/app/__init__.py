@@ -49,7 +49,7 @@ def create_app():
     def load_user(user_id):
         return Users.get_by_id(user_id)
 
-    app.register_blueprint(college_bp, url_prefix='/api/college')
+    app.register_blueprint(college_bp, url_prefix='/api/colleges')
     app.register_blueprint(program_bp, url_prefix='/api/programs')
     app.register_blueprint(student_bp, url_prefix='/api/student')
     app.register_blueprint(stats_bp, url_prefix='/api/stats')

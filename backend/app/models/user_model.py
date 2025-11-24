@@ -47,7 +47,6 @@ class Users(UserMixin):
         try:
             cur.execute("SELECT id, username, email FROM user_table")
             rows = cur.fetchall()
-            # Convert raw rows to a list of dictionaries
             users = [dict(row) for row in rows]
             return users
         finally:
@@ -106,7 +105,6 @@ class Users(UserMixin):
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=DictCursor)
         try:
-            # We use 'pfp_url' here to match your new schema
             cur.execute("""
                 UPDATE user_table 
                 SET pfp_url = %s 

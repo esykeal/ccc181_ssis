@@ -39,7 +39,6 @@ def get_paginated_colleges_handler(page: int, limit: int, sort_by: str, sort_ord
             "message": "Could not retrieve paginated college data."
         }), 500
 
-# --- 2. READ: Get one college by code ---
 @college_bp.route('/<string:code>', methods=['GET'])
 def get_college(code):
     try:
@@ -50,12 +49,10 @@ def get_college(code):
     except Exception as e:
         return jsonify({"error": f"Database error: {e}"}), 500
 
-# --- 3. CREATE: Add a new college ---
 @college_bp.route('/', methods=['POST'])
 def add_college():
     data = request.json
     
-    # Simple validation
     if not data or 'college_code' not in data or 'college_name' not in data:
         return jsonify({"error": "Missing college_code or college_name"}), 400
 
@@ -67,7 +64,6 @@ def add_college():
              return jsonify({"error": "College code already exists"}), 409
         return jsonify({"error": str(e)}), 500
     
-# --- 4. UPDATE: Edit a college ---
 @college_bp.route('/<string:code>', methods=['PUT'])
 def update_college(code):
     data = request.json
@@ -97,7 +93,6 @@ def update_college(code):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-# --- 5. DELETE: Remove a college ---
 @college_bp.route('/<string:code>', methods=['DELETE'])
 def delete_college(code):
     try:

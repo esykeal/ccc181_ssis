@@ -70,7 +70,7 @@ export default function CollegeList({
             </tr>
           )}
 
-          {!loading && colleges.length === 0 && (
+          {!loading && Array.isArray(colleges) && colleges.length === 0 && (
             <tr>
               <td colSpan={3} className="p-8 text-center text-zinc-500">
                 No colleges found.
@@ -78,7 +78,16 @@ export default function CollegeList({
             </tr>
           )}
 
+          {!loading && !Array.isArray(colleges) && (
+            <tr>
+              <td colSpan={3} className="p-8 text-center text-red-500">
+                Error: Invalid data received from server.
+              </td>
+            </tr>
+          )}
+
           {!loading &&
+            Array.isArray(colleges) &&
             colleges.map((college) => (
               <tr
                 key={college.id || college.college_code}

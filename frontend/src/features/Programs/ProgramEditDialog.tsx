@@ -44,8 +44,22 @@ export default function EditProgramDialog({
   useEffect(() => {
     api
       .get("/colleges/")
-      .then((res) => setColleges(res.data))
-      .catch((err) => console.error(err));
+      .then((res) => {
+        const data = res.data;
+
+        if (Array.isArray(data)) {
+          setColleges(data);
+        } else if (data && Array.isArray(data.data)) {
+          setColleges(data.data);
+        } else {
+          console.error("Invalid colleges format:", data);
+          setColleges([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load colleges:", err);
+        setColleges([]);
+      });
   }, []);
 
   useEffect(() => {
@@ -130,12 +144,14 @@ export default function EditProgramDialog({
                 <SelectTrigger>
                   <SelectValue placeholder="Select a college..." />
                 </SelectTrigger>
-                <SelectContent>
-                  {colleges.map((college) => (
-                    <SelectItem key={college.id} value={college.college_code}>
-                      {college.college_code} - {college.college_name}
-                    </SelectItem>
-                  ))}
+
+                <SelectContent className="max-h-[200px]">
+                  {Array.isArray(colleges) &&
+                    colleges.map((college) => (
+                      <SelectItem key={college.id} value={college.college_code}>
+                        {college.college_code} - {college.college_name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>

@@ -20,6 +20,7 @@ export default function CollegePage() {
 
   const [sortBy, setSortBy] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [collegeToDelete, setCollegeToDelete] = useState<string | null>(null);
@@ -29,8 +30,6 @@ export default function CollegePage() {
 
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchColleges = async () => {
     setLoading(true);
@@ -43,12 +42,26 @@ export default function CollegePage() {
         sortOrder,
         searchQuery
       );
-      setColleges(response.data || []);
-      const totalRecords = response.total || 0;
-      setTotalPages(Math.ceil(totalRecords / limit));
+
+      console.log("Colleges API Response:", response);
+
+      let dataList: College[] = [];
+      let total = 0;
+
+      if (Array.isArray(response)) {
+        dataList = response;
+        total = response.length;
+      } else if (response && Array.isArray((response as any).data)) {
+        dataList = (response as any).data;
+        total = (response as any).total || dataList.length;
+      }
+
+      setColleges(dataList);
+      setTotalPages(Math.ceil(total / limit) || 1);
     } catch (err) {
       console.error("API Error:", err);
       setError("Failed to load colleges.");
+      setColleges([]);
     } finally {
       setLoading(false);
     }

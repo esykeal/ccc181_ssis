@@ -9,7 +9,6 @@ class ProgramModel:
         self.program_name = program_name
         self.college_code = college_code
 
-    # --- LIST (Read All) ---
     @classmethod
     def get_all(cls):
         conn = get_db_connection()
@@ -31,7 +30,6 @@ class ProgramModel:
             })
         return programs
 
-    # --- READ (Get One by Code) ---
     @classmethod
     def get_by_code(cls, code):
         conn = get_db_connection()
@@ -78,7 +76,6 @@ class ProgramModel:
             }
         return None
 
-    # --- CREATE ---
     @classmethod
     def add(cls, code, name, college_code):
         conn = get_db_connection()
@@ -108,7 +105,6 @@ class ProgramModel:
             cur.close()
             conn.close()
 
-    # --- UPDATE ---
     @classmethod
     def update(cls, original_code, new_code, new_name, new_college_code):
         conn = get_db_connection()
@@ -141,7 +137,6 @@ class ProgramModel:
             cur.close()
             conn.close()
 
-    # --- DELETE ---
     @classmethod
     def delete(cls, code):
         conn = get_db_connection()

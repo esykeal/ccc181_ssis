@@ -83,7 +83,7 @@ export default function ProgramList({
             </tr>
           )}
 
-          {!loading && programs.length === 0 && (
+          {!loading && Array.isArray(programs) && programs.length === 0 && (
             <tr>
               <td colSpan={4} className="p-8 text-center text-zinc-500">
                 No programs found.
@@ -91,7 +91,16 @@ export default function ProgramList({
             </tr>
           )}
 
+          {!loading && !Array.isArray(programs) && (
+            <tr>
+              <td colSpan={4} className="p-8 text-center text-red-500">
+                Error: Invalid program data received.
+              </td>
+            </tr>
+          )}
+
           {!loading &&
+            Array.isArray(programs) &&
             programs.map((program) => (
               <tr
                 key={program.id || program.program_code}

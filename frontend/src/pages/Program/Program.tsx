@@ -42,12 +42,26 @@ export default function ProgramPage() {
         sortOrder,
         searchQuery
       );
-      setPrograms(response.data || []);
-      const totalRecords = response.total || 0;
-      setTotalPages(Math.ceil(totalRecords / limit));
+
+      console.log("Program API Response:", response); // Debug log
+
+      let dataList: Program[] = [];
+      let total = 0;
+
+      if (Array.isArray(response)) {
+        dataList = response;
+        total = response.length;
+      } else if (response && Array.isArray(response.data)) {
+        dataList = response.data;
+        total = response.total || response.data.length;
+      }
+
+      setPrograms(dataList);
+      setTotalPages(Math.ceil(total / limit) || 1);
     } catch (err) {
       console.error("API Error:", err);
       setError("Failed to load programs.");
+      setPrograms([]);
     } finally {
       setLoading(false);
     }

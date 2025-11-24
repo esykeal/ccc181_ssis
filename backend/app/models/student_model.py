@@ -12,7 +12,6 @@ class StudentModel:
         self.gender = gender
         self.pfp_url = pfp_url
 
-    # --- LIST (Read All) ---
     @classmethod
     def get_all(cls):
         conn = get_db_connection()
@@ -39,7 +38,6 @@ class StudentModel:
             })
         return students
 
-    # --- READ (Get One by Student ID) ---
     @classmethod
     def get_by_id(cls, student_id):
         conn = get_db_connection()
@@ -66,7 +64,6 @@ class StudentModel:
             }
         return None
 
-    # --- CREATE ---
     @classmethod
     def add(cls, student_id, firstname, lastname, program_code, year, gender, pfp_url=None):
         conn = get_db_connection()
@@ -100,7 +97,6 @@ class StudentModel:
             cur.close()
             conn.close()
 
-    # --- UPDATE ---
     @classmethod
     def update(cls, original_student_id, new_student_id, firstname, lastname, program_code, year, gender, pfp_url):
         conn = get_db_connection()
@@ -143,7 +139,6 @@ class StudentModel:
             cur.close()
             conn.close()
 
-    # --- DELETE ---
     @classmethod
     def delete(cls, student_id):
         conn = get_db_connection()
@@ -174,7 +169,6 @@ class StudentModel:
             cur.close()
             conn.close()
 
-    #
     @classmethod
     def by_pagination(cls, page: int, limit: int, sort_by: str = None, sort_order: str = 'ASC', search: str = ''):
         offset = (page - 1) * limit
