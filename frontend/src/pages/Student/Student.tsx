@@ -110,7 +110,7 @@ export default function StudentPage() {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto flex flex-col gap-6 pb-18">
+    <div className="p-8 max-w-7xl mx-auto flex flex-col gap-4 pb-14">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Students</h1>
@@ -120,7 +120,7 @@ export default function StudentPage() {
         <AddStudentDialog onStudentAdded={fetchStudents} />
       </div>
 
-      <div className="flex justify-between items-center bg-zinc-50 p-2 rounded-md border">
+      <div className="flex justify-between items-center bg-zinc-50 p-2">
         <StudentSearchBar onSearch={setSearchQuery} />
       </div>
 
@@ -136,7 +136,7 @@ export default function StudentPage() {
           onRowClick={handleRowClick}
         />
 
-        <div className="flex justify-center pt-4">
+        <div className="fixed bottom-0 left-3/4 -translate-x-1/2 w-full max-w-5xl p-4 flex justify-center z-10">
           <PaginationControls
             currentPage={page}
             totalPages={totalPages}

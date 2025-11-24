@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# --- DATA: Name Pools ---
 first_names = [
     "James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", "Elizabeth",
     "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", "Sarah", "Charles", "Karen",
@@ -38,7 +37,6 @@ def seed_students():
         cur = conn.cursor()
         print("🔌 Connected to database...")
 
-        # 1. Get valid programs so we don't assign students to non-existent courses
         cur.execute("SELECT program_code FROM program_table")
         valid_programs = [r[0] for r in cur.fetchall()]
 
@@ -49,21 +47,19 @@ def seed_students():
         print("🎓 Generating and Seeding 300 Students...")
         
         for i in range(300):
-            # Random Attributes
             year_level = random.randint(1, 4)
             gender = random.choice(['Male', 'Female', 'Other'])
             f_name = random.choice(first_names)
             l_name = random.choice(last_names)
             program = random.choice(valid_programs)
-            
-            # ID Format: 2024-0001
             student_id = f"2024-{str(i+1).zfill(4)}"
+            pfp_url = None
 
             cur.execute("""
-                INSERT INTO student_table (student_id, firstname, lastname, program_code, year, gender)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO student_table (student_id, firstname, lastname, program_code, year, gender, pfp_url)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (student_id) DO NOTHING;
-            """, (student_id, f_name, l_name, program, year_level, gender))
+            """, (student_id, f_name, l_name, program, year_level, gender, pfp_url))
 
         conn.commit()
         print("✅ Students seeded successfully!")
