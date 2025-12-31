@@ -194,16 +194,18 @@ class StudentModel:
 
             if search:
                 search_term = f"%{search}%"
+                
                 search_clause = """
                     AND (student_id ILIKE %s 
                         OR firstname ILIKE %s 
                         OR lastname ILIKE %s 
                         OR gender ILIKE %s 
-                        OR year::text ILIKE %s)
+                        OR year::text ILIKE %s
+                        OR program_code ILIKE %s) 
                 """
                 base_query += search_clause
                 count_query += search_clause
-                params.extend([search_term] * 5)
+                params.extend([search_term] * 6)
 
             if filters:
                 if filters.get('program'):
