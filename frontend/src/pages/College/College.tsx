@@ -8,6 +8,7 @@ import DeleteConfirmationDialog from "@/features/College/CollegeDeleteConfirmati
 import EditCollegeDialog from "@/features/College/CollegeEditDialog";
 import ErrorDialog from "@/features/Components/ErrorDialog";
 import CollegeSearchBar from "@/features/College/CollegeSearchBar";
+import { toast } from "sonner";
 
 export default function CollegePage() {
   const [colleges, setColleges] = useState<College[]>([]);
@@ -95,6 +96,9 @@ export default function CollegePage() {
     try {
       await collegeApi.delete(collegeToDelete);
       setDeleteDialogOpen(false);
+
+      toast.success("College deleted successfully");
+
       setCollegeToDelete(null);
       fetchColleges();
     } catch (err: any) {

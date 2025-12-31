@@ -8,6 +8,7 @@ import DeleteConfirmationDialog from "@/features/Programs/ProgramDeleteConfirmat
 import EditProgramDialog from "@/features/Programs/ProgramEditDialog";
 import ErrorDialog from "@/features/Components/ErrorDialog";
 import ProgramSearchBar from "@/features/Programs/ProgramSearchBar";
+import { toast } from "sonner";
 
 interface ProgramQueryParams {
   page: number;
@@ -126,6 +127,9 @@ export default function ProgramPage() {
     try {
       await programApi.delete(programToDelete);
       setDeleteDialogOpen(false);
+
+      toast.success("Program deleted successfully");
+
       setProgramToDelete(null);
       fetchPrograms();
     } catch (err: any) {

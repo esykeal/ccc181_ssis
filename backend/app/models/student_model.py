@@ -170,17 +170,14 @@ class StudentModel:
             conn.close()
 
     @classmethod
-    def by_pagination(cls, page: int, limit: int, sort_by: str = None, sort_order: str = 'ASC', search: str = ''):
+    def by_pagination(cls, page: int, limit: int, sort_by: str = None, sort_order: str = 'ASC', search: str = '', filters: dict = None):
         offset = (page - 1) * limit
 
         allowed_columns = {'student_id', 'firstname', 'lastname', 'program_code', 'year', 'gender'}
         if not sort_by or sort_by not in allowed_columns:
             sort_by = 'student_id'
         
-        if sort_order.upper() not in ['ASC', 'DESC']:
-            sort_order = 'ASC'
-        else:
-            sort_order = sort_order.upper()
+        sort_order = 'DESC' if sort_order.upper() == 'DESC' else 'ASC'
 
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=DictCursor)
@@ -189,31 +186,50 @@ class StudentModel:
             base_query = """
                 SELECT id, student_id, firstname, lastname, program_code, year, gender, pfp_url
                 FROM student_table
+                WHERE 1=1
             """
-            count_query = "SELECT COUNT(*) AS total_count FROM student_table"
+            count_query = "SELECT COUNT(*) AS total_count FROM student_table WHERE 1=1"
 
             params = []
 
             if search:
                 search_term = f"%{search}%"
-                where_clause = """
-                    WHERE (student_id ILIKE %s 
+                search_clause = """
+                    AND (student_id ILIKE %s 
                         OR firstname ILIKE %s 
                         OR lastname ILIKE %s 
                         OR gender ILIKE %s 
                         OR year::text ILIKE %s)
                 """
-                base_query += where_clause
-                count_query += where_clause
-                params.extend([search_term] * 5) 
+                base_query += search_clause
+                count_query += search_clause
+                params.extend([search_term] * 5)
+
+            if filters:
+                if filters.get('program'):
+                    base_query += " AND program_code = ANY(%s)"
+                    count_query += " AND program_code = ANY(%s)"
+                    params.append(filters['program'])
+
+                if filters.get('year'):
+                    base_query += " AND year = ANY(%s)"
+                    count_query += " AND year = ANY(%s)"
+                    params.append(filters['year'])
+
+                if filters.get('gender'):
+                    base_query += " AND gender = ANY(%s)"
+                    count_query += " AND gender = ANY(%s)"
+                    params.append(filters['gender'])
 
             base_query += f" ORDER BY {sort_by} {sort_order} LIMIT %s OFFSET %s"
+
+            count_params = list(params) 
+            
             params.extend([limit, offset])
 
             cur.execute(base_query, tuple(params))
             rows = cur.fetchall()
-
-            count_params = [search_term] * 5 if search else []
+            
             cur.execute(count_query, tuple(count_params))
             total_row = cur.fetchone()
             total = total_row['total_count'] if total_row else 0
@@ -240,7 +256,7 @@ class StudentModel:
         
         except Exception as e:
             print(f"Pagination Error: {e}")
-            return {"data": [], "page": page, "limit": limit, "total": 0}
+            return {"data": [], "page": page, "limit": limit, "total": 0} 
 
         finally:
             cur.close()

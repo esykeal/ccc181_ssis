@@ -6,22 +6,37 @@ interface FetchStudentsResponse {
   total: number;
 }
 
+export interface StudentFilters {
+  program?: string[];
+  year?: string[];
+  gender?: string[];
+}
+
 const studentApi = {
   fetchAll: async (
     page: number,
     limit: number,
     sortBy: string = "student_id",
     sortOrder: "asc" | "desc" = "asc",
-    search: string = ""
+    search: string = "",
+    filters?: StudentFilters
   ) => {
+    const params: any = {
+      page,
+      limit,
+      sort_by: sortBy,
+      sort_order: sortOrder,
+      search: search,
+    };
+
+    if (filters) {
+      if (filters.program?.length) params.program = filters.program.join(",");
+      if (filters.year?.length) params.year = filters.year.join(",");
+      if (filters.gender?.length) params.gender = filters.gender.join(",");
+    }
+
     const response = await api.get<FetchStudentsResponse>("/student/", {
-      params: {
-        page,
-        limit,
-        sort_by: sortBy,
-        sort_order: sortOrder,
-        search: search,
-      },
+      params,
     });
     return response.data;
   },

@@ -5,6 +5,7 @@ import type { College } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -55,6 +56,8 @@ export default function AddProgramDialog({
 
     try {
       await programApi.create(code, name, selectedCollege);
+
+      toast.success("Program added successfully");
 
       setOpen(false);
       setCode("");

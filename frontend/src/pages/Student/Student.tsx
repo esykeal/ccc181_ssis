@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import type { Student } from "@/types";
-import studentApi from "@/api/studentApi";
+import studentApi, { type StudentFilters } from "@/api/studentApi";
 import StudentList from "@/features/Student/StudentList";
 import AddStudentDialog from "@/features/Student/StudentAddDialog";
 import PaginationControls from "@/features/Components/PaginationControls";
@@ -9,6 +9,8 @@ import EditStudentDialog from "@/features/Student/StudentEditDialog";
 import ErrorDialog from "@/features/Components/ErrorDialog";
 import StudentSearchBar from "@/features/Student/StudentSeachBar";
 import { StudenCardDetails } from "@/features/Student/StudentCard";
+import StudentFilter from "@/features/Student/StudentFilter";
+import { toast } from "sonner";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
@@ -37,6 +39,12 @@ export default function StudentPage() {
 
   const [totalPages, setTotalPages] = useState(1);
 
+  const [filters, setFilters] = useState<StudentFilters>({
+    program: [],
+    year: [],
+    gender: [],
+  });
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
 
@@ -55,7 +63,8 @@ export default function StudentPage() {
         queryParams.limit,
         queryParams.sortBy,
         queryParams.sortOrder,
-        queryParams.searchQuery
+        queryParams.searchQuery,
+        filters
       );
       setStudents(response.data || []);
       const totalRecords = response.total || 0;
@@ -66,7 +75,7 @@ export default function StudentPage() {
     } finally {
       setLoading(false);
     }
-  }, [queryParams]);
+  }, [queryParams, filters]);
 
   useEffect(() => {
     fetchStudents();
@@ -78,6 +87,11 @@ export default function StudentPage() {
       searchQuery: query,
       page: 1,
     }));
+  };
+
+  const handleFilterChange = (newFilters: StudentFilters) => {
+    setFilters(newFilters);
+    setQueryParams((prev) => ({ ...prev, page: 1 }));
   };
 
   const handleSort = (column: string) => {
@@ -122,6 +136,8 @@ export default function StudentPage() {
       await studentApi.delete(studentToDelete);
       setDeleteDialogOpen(false);
 
+      toast.success("Student deleted successfully");
+
       if (
         selectedStudent &&
         String(selectedStudent.student_id) === String(studentToDelete)
@@ -155,8 +171,15 @@ export default function StudentPage() {
         <AddStudentDialog onStudentAdded={fetchStudents} />
       </div>
 
-      <div className="flex justify-between items-center bg-zinc-50 p-2">
-        <StudentSearchBar onSearch={handleSearch} />
+      <div className="flex justify-between items-center bg-zinc-50 p-2 gap-2">
+        <div className="flex-1">
+          <StudentSearchBar onSearch={handleSearch} />
+        </div>
+
+        <StudentFilter
+          currentFilters={filters}
+          onApplyFilters={handleFilterChange}
+        />
       </div>
 
       <div className="space-y-4">

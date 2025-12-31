@@ -3,6 +3,8 @@ import collegeApi from "@/api/collegeApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+
 import {
   Dialog,
   DialogContent,
@@ -60,6 +62,8 @@ export default function AddCollegeDialog({
 
     try {
       await collegeApi.create(code, name);
+
+      toast.success("College added successfully");
 
       setOpen(false);
       setCode("");

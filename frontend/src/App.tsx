@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { AppSidebar } from "@/layouts/AppSidebar";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function App() {
   return (
@@ -7,6 +8,7 @@ export default function App() {
       <AppSidebar />
       <main className="flex-1 overflow-y-auto">
         <Outlet />
+        <Toaster />
       </main>
     </div>
   );

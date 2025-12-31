@@ -5,6 +5,8 @@ import type { Program } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+
 import {
   Dialog,
   DialogContent,
@@ -119,6 +121,12 @@ export default function AddStudentDialog({
     setLoading(true);
     setError("");
 
+    if (!/^\d{4}-\d{4}$/.test(studentId)) {
+      setError("Student ID must be in the format YYYY-NNNN");
+      setLoading(false);
+      return;
+    }
+
     try {
       await studentApi.create(
         studentId,
@@ -129,6 +137,8 @@ export default function AddStudentDialog({
         gender,
         selectedFile
       );
+
+      toast.success("Student added successfully");
 
       setOpen(false);
       resetForm();

@@ -13,8 +13,23 @@ def get_students():
     sort_order = request.args.get('sort_order', 'asc')
     search = request.args.get('search', '')
 
+    program_filter = request.args.get('program', '')
+    year_filter = request.args.get('year', '')
+    gender_filter = request.args.get('gender', '')
+
+    filters = {}
+    
+    if program_filter:
+        filters['program'] = program_filter.split(',')
+        
+    if year_filter: 
+        filters['year'] = [int(y) for y in year_filter.split(',') if y.isdigit()]
+        
+    if gender_filter:
+        filters['gender'] = gender_filter.split(',')
+
     if page is not None and limit is not None:
-        return get_paginated_student_handler(page, limit, sort_by, sort_order, search)
+        return get_paginated_student_handler(page, limit, sort_by, sort_order, search, filters)
 
     try:
         students = StudentModel.get_all()
@@ -22,12 +37,13 @@ def get_students():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-def get_paginated_student_handler(page, limit, sort_by, sort_order, search):
+def get_paginated_student_handler(page, limit, sort_by, sort_order, search, filters):
     try:
         page = max(1, page)
         limit = max(1, limit)
 
-        pagination_data = StudentModel.by_pagination(page, limit, sort_by, sort_order, search)
+        pagination_data = StudentModel.by_pagination(page, limit, sort_by, sort_order, search, filters)
+        
         return jsonify(pagination_data), 200
     except Exception as e:
         print(f"Error fetching paginated students: {e}")
