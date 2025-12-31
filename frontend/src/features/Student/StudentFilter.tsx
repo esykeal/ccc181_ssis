@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -95,7 +94,7 @@ export default function StudentFilter({
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="gap-2 border-dashed px-3"
+          className="gap-2 border border px-3"
           aria-label="Filter"
         >
           <ListFilter className="h-4 w-4" />
@@ -110,9 +109,6 @@ export default function StudentFilter({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Filter Students</DialogTitle>
-          <DialogDescription>
-            Narrow down the list by Program, Year Level, or Gender.
-          </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-6 py-4 px-1 max-h-[60vh] overflow-y-auto">
