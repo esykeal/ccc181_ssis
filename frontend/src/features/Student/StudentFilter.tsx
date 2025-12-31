@@ -111,7 +111,6 @@ export default function StudentFilter({
           aria-label="Filter students"
         >
           <ListFilter className="h-4 w-4" />
-          Filter
           {activeFilterCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black text-xs text-white">
               {activeFilterCount}
