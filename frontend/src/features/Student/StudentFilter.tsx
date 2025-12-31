@@ -93,9 +93,13 @@ export default function StudentFilter({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2 border-dashed">
+        <Button
+          variant="outline"
+          className="gap-2 border-dashed px-3"
+          aria-label="Filter"
+        >
           <ListFilter className="h-4 w-4" />
-          Filter
+
           {count > 0 && (
             <span className="ml-1 rounded-full bg-black text-white text-[10px] h-5 w-5 flex items-center justify-center">
               {count}

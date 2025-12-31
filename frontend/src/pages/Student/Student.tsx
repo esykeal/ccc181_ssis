@@ -171,11 +171,10 @@ export default function StudentPage() {
         <AddStudentDialog onStudentAdded={fetchStudents} />
       </div>
 
-      <div className="flex justify-between items-center bg-zinc-50 p-2 gap-2">
-        <div className="flex-1">
+      <div className="flex items-center bg-zinc-50 p-2 gap-2">
+        <div className="w-full max-w-sm">
           <StudentSearchBar onSearch={handleSearch} />
         </div>
-
         <StudentFilter
           currentFilters={filters}
           onApplyFilters={handleFilterChange}
